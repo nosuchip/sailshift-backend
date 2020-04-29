@@ -1,0 +1,15 @@
+{% extends "email/layout.jinja2" %}
+
+{% block text -%}
+Hi. Welcome to Sailshift. Please confirm your email by clicking button below.
+{% endblock text -%}
+
+{% block buttons -%}
+<td class="text-button"
+    style="background:#ef3050; color:#ffffff; font-family:Arial ,sans-serif; font-size:14px; line-height:18px; padding:12px 20px; text-align:center; text-transform:uppercase; font-weight:bold; border-radius:22px;"
+>
+    <a href="{{ confirmation_url }}" target="_blank" class="link-white" style="color:#ffffff; text-decoration:none;">
+        <span class="link-white" style="color:#ffffff; text-decoration:none;">CONFIRM EMAIL</span>
+    </a>
+</td>
+{% endblock buttons %}

@@ -2,14 +2,15 @@ from marshmallow import Schema, fields
 
 
 class LoginSchema(Schema):
-    username = fields.Email(required=True)
+    email = fields.Email(required=True)
     password = fields.Str(required=True)
 
 
 class RegisterSchema(Schema):
-    username = fields.Email(required=True)
+    email = fields.Email(required=True)
     password = fields.Str(required=True)
     confirmation = fields.Str(required=True)
+    name = fields.Str(required=False)
 
 
 class ForgotPasswordSchema(Schema):

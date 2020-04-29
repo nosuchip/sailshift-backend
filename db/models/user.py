@@ -1,5 +1,5 @@
-from sqlalchemy import Column, Integer, String
-from backend.db import Base
+from sqlalchemy import Column, Integer, String, Enum, Boolean, DateTime
+from backend.db import Base, enums
 
 
 class User(Base):
@@ -8,12 +8,10 @@ class User(Base):
     id = Column(Integer, primary_key=True)
     email = Column(String(128), unique=True, nullable=False)
     password = Column(String(256), nullable=False)
-    name = Column(String(256))
-    role = Column(String(20), nullable=False, default='user')
-
-    def __init__(self, name=None, email=None):
-        self.name = name
-        self.email = email
+    name = Column(String(256), nullable=True)
+    role = Column(Enum(enums.UserRoles), nullable=False, default=enums.UserRoles.User)
+    active = Column(Boolean(), nullable=False, default=True)
+    activated_at = Column(DateTime(), nullable=True)
 
     def __str__(self):
         return f'<User {self.name} ({self.email})>'
