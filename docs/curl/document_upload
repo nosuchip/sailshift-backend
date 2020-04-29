@@ -1,0 +1,6 @@
+curl -v -X POST \
+    -H 'Content-Type: multipart/form-data; boundary=---------BOUNDARY' \
+    -H "Authorization: Bearer $AUTH_TOKEN" \
+    -F name="test_document.pdf" -F description="optional description" -F organization="School #1" \
+    -F file=@docs/pdfs/investopedia.pdf \
+    http://localhost:5000/documents/admin/upload

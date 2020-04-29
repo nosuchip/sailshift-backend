@@ -1,6 +1,7 @@
+import datetime
 from flask import Blueprint
 from backend.common.decorators import api_validation, json_response
-from backend.api.accounts.schema import LoginSchema, RegisterSchema, ForgotPasswordSchema
+from backend.api.accounts.schema import LoginSchema, RegisterSchema, ForgotPasswordSchema, ResetPasswordSchema
 from backend.api.accounts import user_controller as controller
 from backend.common.errors import Http400Error, Http404Error, Http401Error
 from backend import config
@@ -72,13 +73,41 @@ def register(params):
 @blueprint.route('/forgot_password', methods=['POST'])
 @api_validation(ForgotPasswordSchema)
 def forgot_password(params):
-    return {"message": params}
+    user = controller.get_user(params['email'])
+    forgot_password_url = config.get_url('reset_password', controller.issue_token(user))
+
+    try:
+        mailer.send(
+            user.email,
+            'email/forgot_password',
+            {'forgot_password_url': forgot_password_url},
+            'Password restore'
+        )
+    except Exception as ex:
+        print(f'Unable to send email to user {user.email}:', ex)
+
+    return {}
 
 
 @blueprint.route('/reset_password', methods=['POST'])
-@api_validation(ForgotPasswordSchema)
+@api_validation(ResetPasswordSchema)
 def reset_password(params):
-    return {"message": params}
+    if params['password'] != params['confirmation']:
+        raise Http400Error('Password must match confirmation')
+
+    payload = jwt.deserialize(params['token'])
+    user = controller.get_user_by_id(payload['user_id'])
+
+    payload = {
+        'password': params['password']
+    }
+
+    if not user.activated_at:
+        user.activated_at = datetime.datetime.now()
+
+    controller.update_user(user, **payload)
+
+    return {}
 
 
 @blueprint.route('/verify/<token>', methods=['GET'])

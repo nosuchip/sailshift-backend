@@ -2,7 +2,6 @@ import hashlib
 import binascii
 import os
 import datetime
-import random
 
 from backend.db.models.user import User
 from backend.db import session
@@ -13,14 +12,14 @@ from backend.db import enums
 
 def get_user(email):
     try:
-        return User.query.filter_by(email=email).one()
+        return session.query(User).filter_by(email=email).one()
     except Exception:
         raise Http404Error(f'User "{email}" not found')
 
 
 def get_user_by_id(user_id):
     try:
-        return User.query.get(user_id)
+        return session.query(User).get(user_id)
     except Exception:
         raise Http404Error(f'User not found')
 
@@ -69,7 +68,7 @@ def validate_password(stored_password, password):
 def create_user(**kwargs):
     email = kwargs['email']
 
-    count = User.query.filter_by(email=email).count()
+    count = session.query(User).filter_by(email=email).count()
 
     if count:
         raise Http409Error(f'User with email "{email}"" already exists')
@@ -89,9 +88,7 @@ def create_user(**kwargs):
     return user
 
 
-def update_user(email, **kwargs):
-    user = get_user(email)
-
+def update_user(user, **kwargs):
     if 'name' in kwargs:
         user.name = kwargs['name']
 

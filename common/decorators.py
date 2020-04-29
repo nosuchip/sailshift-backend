@@ -1,9 +1,9 @@
 import traceback
 from functools import wraps
-from flask import make_response, request, session
+from flask import make_response, request, g
 from werkzeug.exceptions import BadRequest
 from marshmallow import ValidationError
-from backend.common.errors import HttpError, Http403Error
+from backend.common.errors import HttpError, Http403Error, Http400Error
 from backend.api.accounts.user_controller import load_user_from_token
 from backend import config
 from backend.db import enums
@@ -54,43 +54,44 @@ def json_response(fn):
     return wrapper
 
 
-def validate_schema(marshmallow_schema):
+def validate_schema(marshmallow_schema, source=None):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            status = 200
-            payload = {}
-
             try:
-                params = marshmallow_schema().load(request.json)
+                data_to_validate = source(request) if source else request.json
+                params = marshmallow_schema().load(data_to_validate or {})
                 return f(*args, **kwargs, params=params)
             except ValidationError as ex:
                 print("validate_schema ValidationError:", ex)
-                status = 400
-                payload = {'error': 'Field validation failed', 'validation_errors': ex.messages}
-
-            return payload, status
+                raise Http400Error('Field validation failed', ex.messages)
 
         return wrapper
     return decorator
 
 
 def login_required(fn):
-    authorization = request.headers.get('Authorization')
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        try:
+            token_type, token = request.headers.get('Authorization').split(' ')
+        except Exception:
+            raise Http403Error('Bad authorization token')
 
-    token_type, token = authorization.split(' ')
+        if token_type != config.AUTH_TOKEN_TYPE:
+            raise Http403Error('Bad authorization token')
 
-    if token_type != config.AUTH_TOKEN_TYPE:
-        raise Http403Error('Bad authorization token')
+        g.user = load_user_from_token(token)
 
-    session['user'] = load_user_from_token(token)
+        return fn(*args, **kwargs)
+    return wrapper
 
 
 def role_required(role):
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            if not session['user'] or session['user'].role != role:
+            if not g.user or g.user.role != role:
                 raise Http403Error('Insufficient privileges')
 
             return f(*args, **kwargs)
@@ -102,9 +103,9 @@ def api_validation(schema):
     return apply_decorators(json_response, validate_schema(schema))
 
 
-def user_required():
-    return apply_decorators(json_response, login_required)
+def user_required(fn):
+    return apply_decorators(json_response, login_required)(fn)
 
 
-def admin_required():
-    return apply_decorators(json_response, login_required, role_required(enums.UserRoles.Admin))
+def admin_required(fn):
+    return apply_decorators(json_response, login_required, role_required(enums.UserRoles.Admin))(fn)

@@ -11,12 +11,17 @@ SENDGRID_API_KEY = os.environ['SENDGRID_API_KEY']
 EMAIL_FROM_ADDRESS = os.environ['EMAIL_FROM_ADDRESS']
 SITE_URL = os.environ['SITE_ENV']
 
+AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
+AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+AWS_REGION = os.environ['AWS_REGION']
+AWS_S3_BUCKET = os.environ['AWS_S3_BUCKET']
+
 # optionas
 AUTH_TOKEN_TYPE = os.getenv('AUTH_TOKEN_TYPE', 'Bearer')
 
 # app-specific
 DATE_FORMAT_STRING = '%Y-%m-%d %H:%M:%S'
-
+EXCERPTS_LINES_COUNT = 50
 
 print(f'config:APP_SECRET_KEY = {APP_SECRET_KEY}')
 print(f'config:DATABASE_URI = {DATABASE_URI}')
@@ -31,6 +36,7 @@ print(f'config:DATE_FORMAT_STRING = {DATE_FORMAT_STRING}')
 def get_url(url_key, *parts):
     urls = {
         'verify': '/accounts/verify/',
+        'reset_password': '/accounts/reset_password/',
     }
 
     return SITE_URL + urls[url_key] + '/'.join([str(i) for i in parts])
