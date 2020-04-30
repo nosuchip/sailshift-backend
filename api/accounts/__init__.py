@@ -30,6 +30,7 @@ def login(params):
     return {
         'user': {
             'id': user.id,
+            'email': user.email,
             'name': user.name,
             'activated_at': user.activated_at
         },
@@ -64,6 +65,7 @@ def register(params):
     return {
         'user': {
             'id': user.id,
+            'email': user.email,
             'name': user.name,
             'activated_at': user.activated_at
         }
@@ -124,6 +126,7 @@ def verify_account(token):
     return {
         'user': {
             'id': user.id,
+            'email': user.email,
             'name': user.name,
             'activated_at': user.activated_at
         }

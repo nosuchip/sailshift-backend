@@ -16,7 +16,7 @@ Base.query = db_session.query_property()
 def init_db():
     from backend.db.models.user import User
     from backend.db.models.document import Document
-    from backend.db.models.download import Download
+    from backend.db.models.purchase import Purchase
 
     try:
         Base.metadata.create_all(bind=engine)

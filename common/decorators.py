@@ -31,7 +31,8 @@ def json_response(fn):
                     status = res[1]
 
                 payload = res[0]
-            payload = res
+            else:
+                payload = res
         except HttpError as ex:
             print("json_response HttpError:", ex)
             traceback.print_exc()

@@ -28,3 +28,8 @@ class Http403Error(HttpError):
 class Http409Error(HttpError):
     def __init__(self, message=None, payload=None):
         super().__init__(status=409, message=message or 'Resource already exist', payload=payload)
+
+
+class Http410Error(HttpError):
+    def __init__(self, message=None, payload=None):
+        super().__init__(status=410, message=message or 'Resource not available anymore', payload=payload)
