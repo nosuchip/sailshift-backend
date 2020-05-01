@@ -2,4 +2,4 @@ curl -v -X POST \
     -H 'Content-Type: application/json' \
     -H "Authorization: Bearer $AUTH_TOKEN" \
     -d '{ "document_id": "9fdcb1f011064351bd440c556d9a0d04", "user_id": "1", "expires_in": "60", "notify_user": false }' \
-    http://localhost:5000/documents/admin/grant
+    http://localhost:5000/api/documents/admin/grant

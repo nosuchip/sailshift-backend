@@ -12,7 +12,7 @@ from backend.db import session
 from backend.common import mailer
 
 
-blueprint = Blueprint('documents', __name__, url_prefix='/documents')
+blueprint = Blueprint('documents', __name__, url_prefix='/api/documents')
 
 
 @blueprint.route('/admin/upload', methods=['POST'])

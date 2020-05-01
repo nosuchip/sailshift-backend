@@ -1,4 +1,4 @@
 curl -v -X GET \
     -H 'Content-Type: application/json' \
     -H "Authorization: Bearer $AUTH_TOKEN" \
-    http://localhost:5000/documents/admin/download/9fdcb1f011064351bd440c556d9a0d04
+    http://localhost:5000/api/documents/admin/download/9fdcb1f011064351bd440c556d9a0d04

@@ -8,7 +8,7 @@ from backend import config
 from backend.common import mailer
 from backend.common import jwt
 
-blueprint = Blueprint('accounts', __name__, url_prefix='/accounts')
+blueprint = Blueprint('accounts', __name__, url_prefix='/api/accounts')
 
 
 @blueprint.route('/login', methods=['POST'])

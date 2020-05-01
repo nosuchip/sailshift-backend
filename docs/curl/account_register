@@ -1,4 +1,4 @@
 curl -v -X POST \
     -H 'content-type: application/json' \
     -d '{ "email": "nosuchip@gmail.com", "password": "P@ssw0rd", "confirmation": "P@ssw0rd", "name": "Alex The First" }' \
-    http://localhost:5000/accounts/register
+    http://localhost:5000/api/accounts/register
