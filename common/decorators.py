@@ -1,3 +1,4 @@
+import asyncio
 import traceback
 from functools import wraps
 from flask import make_response, request, g
@@ -110,3 +111,10 @@ def user_required(fn):
 
 def admin_required(fn):
     return apply_decorators(json_response, login_required, role_required(enums.UserRoles.Admin))(fn)
+
+
+def async_action(f):
+    @wraps(f)
+    def wrapped(*args, **kwargs):
+        return asyncio.run(f(*args, **kwargs))
+    return wrapped

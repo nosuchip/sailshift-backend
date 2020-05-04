@@ -1,12 +1,13 @@
 import datetime
 from flask import Blueprint
-from backend.common.decorators import api_validation, json_response
+from backend.common.decorators import api_validation, json_response, async_action
 from backend.api.accounts.schema import LoginSchema, RegisterSchema, ForgotPasswordSchema, ResetPasswordSchema
 from backend.api.accounts import user_controller as controller
 from backend.common.errors import Http400Error, Http404Error, Http401Error
 from backend import config
 from backend.common import mailer
 from backend.common import jwt
+from backend.api.prerender import prerender_controller
 
 blueprint = Blueprint('accounts', __name__, url_prefix='/api/accounts')
 
@@ -131,3 +132,12 @@ def verify_account(token):
             'activated_at': user.activated_at
         }
     }
+
+
+@blueprint.route('/prerender', methods=['GET'])
+@json_response
+@async_action
+async def temp():
+    await prerender_controller.render_url("http://localhost:3000/account/login")
+
+    return {"ok": True}

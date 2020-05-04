@@ -17,6 +17,7 @@ def init_db():
     from backend.db.models.user import User
     from backend.db.models.document import Document
     from backend.db.models.purchase import Purchase
+    from backend.db.models.prerender import Prerender
 
     try:
         Base.metadata.create_all(bind=engine)

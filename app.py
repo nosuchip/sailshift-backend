@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 
 from backend.api import accounts
 from backend.api import documents
@@ -10,6 +11,7 @@ def create_app():
     init_db()
 
     app = Flask(__name__)
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
 
     app.register_blueprint(accounts.blueprint)
     app.register_blueprint(documents.blueprint)
