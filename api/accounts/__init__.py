@@ -18,7 +18,7 @@ def login(params):
     user = controller.get_user(params['email'])
 
     if not user:
-        raise Http404Error(f'User not found by key {user_id}')
+        raise Http404Error(f'User not found by key {params["email"]}')
 
     if not user.active:
         raise Http401Error(f'User {user.email} deactivated')
@@ -33,7 +33,8 @@ def login(params):
             'id': user.id,
             'email': user.email,
             'name': user.name,
-            'activated_at': user.activated_at
+            'activated_at': user.activated_at,
+            'role': user.role.value if user.role else ''
         },
         'token': controller.issue_token(user)
     }

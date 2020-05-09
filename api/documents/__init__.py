@@ -145,7 +145,8 @@ def list_documents():
             'title': document.title,
             'organization': document.organization,
             'description': document.description,
-            'text': document.text
+            'text': document.text,
+            'url': document.url
         } for document in documents]
     }
 
