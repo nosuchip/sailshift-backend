@@ -18,3 +18,13 @@ class Document(Base):
 
     def __str__(self):
         return f'<Document {self.title}>'
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'title': self.title,
+            'organization': self.organization,
+            'description': self.description,
+            'text': self.text,
+            'url': self.url,
+        }

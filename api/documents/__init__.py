@@ -1,10 +1,22 @@
 import os
 from flask import Blueprint, request, g
-from backend.common.decorators import validate_schema, admin_required, login_required
-from backend.api.documents.schema import DocumentCreateSchema, DocumentUpdateSchema, DocumentGrantSchema
+from backend.common.decorators import (
+    validate_schema,
+    admin_required,
+    user_required,
+    async_action
+)
+from backend import config
+from backend.api.documents.schema import (
+    DocumentCreateSchema,
+    DocumentUpdateSchema,
+    DocumentGrantSchema,
+    DocumentSearchSchema
+)
 from backend.api.documents import document_controller
 from backend.api.payments import purchase_controller
 from backend.api.accounts import user_controller
+from backend.api.prerender import prerender_controller
 from backend.common.errors import Http404Error
 from backend.common import s3
 from backend.db.models.document import Document
@@ -13,6 +25,46 @@ from backend.common import mailer
 
 
 blueprint = Blueprint('documents', __name__, url_prefix='/api/documents')
+
+
+@blueprint.route('/popular', methods=['GET'])
+def get_popular_documents():
+    documents = document_controller.get_popular_documents()
+    return {'data': [document.to_json() for document in documents]}
+
+
+@blueprint.route('/my', methods=['GET'])
+@user_required
+def get_my_documents():
+    documents = document_controller.list_actual_user_documents(g.user)
+    return {'data': [document.to_json() for document in documents]}
+
+
+@blueprint.route('/past', methods=['GET'])
+@user_required
+def get_my_past_documents():
+    documents = document_controller.list_past_user_documents(g.user)
+    return {'data': [document.to_json() for document in documents]}
+
+
+@blueprint.route('/search', methods=['POST'])
+@validate_schema(DocumentSearchSchema)
+def search_documents(params):
+    documents, pagination = document_controller.search_documents(
+        query=params['query'],
+        title=params.get('title'),
+        organization=params.get('organization'),
+        department=params.get('department'),
+        text=params.get('text'),
+        page=params.get('page'),
+        page_size=params.get('page_size')
+    )
+
+    return {
+        'data': [document.to_json() for document in documents],
+        'pagination': pagination,
+        'filters': params
+    }
 
 
 @blueprint.route('/admin/upload', methods=['POST'])
@@ -32,16 +84,7 @@ def admin_upload_document(params):
 
     os.unlink(temp_file_path)
 
-    return {
-        'document': {
-            'id': document.id,
-            'title': document.title,
-            'organization': document.organization,
-            'description': document.description,
-            'text': document.text,
-            'url': document.url,
-        }
-    }
+    return {'document': document.to_json()}
 
 
 @blueprint.route('/admin/<document_id>', methods=['PUT'])
@@ -55,19 +98,11 @@ def admin_update_documents(document_id, params):
 
     document = document_controller.update_document(document, **params)
 
-    return {
-        'document': {
-            'id': document.id,
-            'title': document.title,
-            'organization': document.organization,
-            'description': document.description,
-            'text': document.text,
-            'url': document.url,
-        }
-    }
+    return {'document': document.to_json()}
 
 
 @blueprint.route('/admin/<document_id>', methods=['DELETE'])
+@admin_required
 def admin_delete_documents(document_id):
     document = Document.query.get(document_id)
 
@@ -86,7 +121,8 @@ def admin_delete_documents(document_id):
 @blueprint.route('/admin/download/<document_id>', methods=['GET'])
 @admin_required
 def admin_download(document_id):
-    url = document_controller.generate_expireable_document_url(document_id=document_id, expires_in=60)
+    expires_in = request.args.get('expires_in', 60)
+    url = document_controller.generate_expireable_document_url(document_id=document_id, expires_in=expires_in)
     return {'url': url}, 302
 
 
@@ -113,13 +149,7 @@ def admin_grant_document_download(params):
             print(f'Unable to send email to user {user.email}:', ex)
 
     return {
-        'document': {
-            'id': document.id,
-            'title': document.title,
-            'organization': document.organization,
-            'description': document.description,
-            'text': document.text
-        },
+        'document': document.to_json(),
         'purchase': {
             'purchased_at': purchase.purchased_at,
             'valid_until': purchase.valid_until,
@@ -134,37 +164,31 @@ def admin_grant_document_download(params):
     }
 
 
+@blueprint.route('/admin/prerender/<document_id>', methods=['POST'])
+@admin_required
+@async_action
+async def prerender_document(document_id):
+    await prerender_controller.render_url(f"{config.SITE_URL}/document/{document_id}")
+    return {"ok": True}
+
+
 @blueprint.route('/', methods=['GET'])
+@user_required
 def list_documents():
     page = int(request.args.get('page', 0))
     documents = document_controller.list_documents(page)
 
-    return {
-        'documents': [{
-            'id': document.id,
-            'title': document.title,
-            'organization': document.organization,
-            'description': document.description,
-            'text': document.text,
-            'url': document.url
-        } for document in documents]
-    }
+    return {'data': [document.to_json() for document in documents]}
 
 
 @blueprint.route('/<document_id>', methods=['GET'])
-@login_required
-def get_documents(document_id):
+@user_required
+def get_document(document_id):
     document = document_controller.get_document(document_id)
 
-    result = {
-        'document': {
-            'id': document.id,
-            'title': document.title,
-            'organization': document.organization,
-            'description': document.description,
-            'text': document.text
-        }
-    }
+    result = {'document': document.to_json()}
+
+    print(">>>> got document", document)
 
     user_purchase = document_controller.get_user_document_purchase(g.user, document, False)
 
@@ -176,61 +200,3 @@ def get_documents(document_id):
         }
 
     return result
-
-
-@blueprint.route('/my', methods=['GET'])
-@login_required
-def get_my_documents():
-    documents = document_controller.list_actual_user_documents(g.user)
-    return {'documents': documents}
-    # document = document_controller.get_document(document_id)
-
-    # result = {
-    #     'document': {
-    #         'id': document.id,
-    #         'title': document.title,
-    #         'organization': document.organization,
-    #         'description': document.description,
-    #         'text': document.text
-    #     }
-    # }
-
-    # user_purchase = document_controller.get_user_document_purchase(g.user, document, False)
-
-    # if user_purchase:
-    #     result['purchase'] = {
-    #         'purchased_at': user_purchase.purchased_at,
-    #         'valid_until': user_purchase.valid_until,
-    #         'download_url': user_purchase.download_url
-    #     }
-
-    # return result
-
-
-@blueprint.route('/past', methods=['GET'])
-@login_required
-def get_my_past_documents():
-    documents = document_controller.list_past_user_documents(g.user)
-    return {'documents': documents}
-    # document = document_controller.get_document(document_id)
-
-    # result = {
-    #     'document': {
-    #         'id': document.id,
-    #         'title': document.title,
-    #         'organization': document.organization,
-    #         'description': document.description,
-    #         'text': document.text
-    #     }
-    # }
-
-    # user_purchase = document_controller.get_user_document_purchase(g.user, document, False)
-
-    # if user_purchase:
-    #     result['purchase'] = {
-    #         'purchased_at': user_purchase.purchased_at,
-    #         'valid_until': user_purchase.valid_until,
-    #         'download_url': user_purchase.download_url
-    #     }
-
-    # return result

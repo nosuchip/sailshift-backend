@@ -1,6 +1,7 @@
 import os.path
 import uuid
-from sqlalchemy import and_
+import math
+from sqlalchemy import and_, or_, func
 from datetime import datetime
 from backend.common import s3
 from backend import config
@@ -133,4 +134,48 @@ def list_actual_user_documents(user, page=0, page_size=10):
         Document.purchases.any(and_(Purchase.user_id == user.id, Purchase.valid_until >= now))
     ).limit(page_size).offset(page*page_size).all()
 
+    return documents
+
+
+def search_documents(query, title=None, organization=None, department=None, text=None, page=None, page_size=None):
+    page = page or 0
+    page_size = page_size or 10
+    count = 0
+    documents = []
+
+    if query:
+        filter_clause = or_(
+            Document.title.ilike(f'%{query}%'),
+            Document.organization.ilike(f'%{query}%'),
+            Document.text.ilike(f'%{query}%')
+        )
+
+        count = (
+            session
+            .query(func.count(Document.id))
+            .filter(filter_clause)
+            .scalar()
+        )
+
+        documents = (
+            session
+            .query(Document)
+            .filter(filter_clause)
+            .order_by(Document.rank.desc())
+            .limit(page_size)
+            .offset(page*page_size)
+            .all()
+        )
+
+    pagination = {
+        'total': count,
+        'pages': math.ceil(count / page_size),
+        'page': page
+    }
+
+    return documents, pagination
+
+
+def get_popular_documents(count=5):
+    documents = session.query(Document).order_by(Document.rank.desc()).limit(count).all()
     return documents
