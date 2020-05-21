@@ -1,13 +1,21 @@
 import stripe
+from datetime import datetime, timedelta
 from backend import config
 from backend.db.models.purchase import Purchase
-from backend.db import session
+from backend.db import session, enums
 from backend.common.errors import Http400Error
+from backend.api.documents import document_controller
+from backend.api.payments import purchase_controller
 
 stripe.api_key = config.STRIPE_API_KEY
 
 
 def create_payment_intent(user, document_id, amount, currency, payment_method):
+    document = document_controller.get_document(document_id)
+
+    if document.price != amount or currency != enums.Currencies.USD.value:
+        raise Http400Error('Amount or currency is incorrect')
+
     purchase = Purchase()
     purchase.document_id = document_id
     purchase.user_id = user.id
@@ -16,9 +24,9 @@ def create_payment_intent(user, document_id, amount, currency, payment_method):
     session.commit()
 
     intent = stripe.PaymentIntent.create(
-        amount=100 * amount,
+        amount=int(100 * amount),
         currency=currency,
-        payment_method_types=payment_method,
+        payment_method_types=[payment_method],
         receipt_email=user.email,
         metadata={
             'purchase_id': purchase.id
@@ -26,64 +34,15 @@ def create_payment_intent(user, document_id, amount, currency, payment_method):
     )
 
     purchase.payment_status = intent.status
+    purchase.payment_id = intent.id,
+    purchase.payment_data = intent
+
     session.commit()
 
     return (intent.client_secret, purchase)
 
-    # intent = {
-    # "amount": 1035,
-    # "amount_capturable": 0,
-    # "amount_received": 0,
-    # "application": null,
-    # "application_fee_amount": null,
-    # "canceled_at": null,
-    # "cancellation_reason": null,
-    # "capture_method": "automatic",
-    # "charges": {
-    #     "data": [],
-    #     "has_more": false,
-    #     "object": "list",
-    #     "total_count": 0,
-    #     "url": "/v1/charges?payment_intent=pi_1Gdv9MJtdDvmMFZWngADnQHW"
-    # },
-    # "client_secret": "pi_1Gdv9MJtdDvmMFZWngADnQHW_secret_OabcqyaN31BrlHZMWPYBmEgeW",
-    # "confirmation_method": "automatic",
-    # "created": 1588325236,
-    # "currency": "usd",
-    # "customer": null,
-    # "description": null,
-    # "id": "pi_1Gdv9MJtdDvmMFZWngADnQHW",
-    # "invoice": null,
-    # "last_payment_error": null,
-    # "livemode": false,
-    # "metadata": {},
-    # "next_action": null,
-    # "object": "payment_intent",
-    # "on_behalf_of": null,
-    # "payment_method": null,
-    # "payment_method_options": {
-    #     "card": {
-    #     "installments": null,
-    #     "request_three_d_secure": "automatic"
-    #     }
-    # },
-    # "payment_method_types": [
-    #     "card"
-    # ],
-    # "receipt_email": "nosuchip@gmail.com",
-    # "review": null,
-    # "setup_future_usage": null,
-    # "shipping": null,
-    # "source": null,
-    # "statement_descriptor": null,
-    # "statement_descriptor_suffix": null,
-    # "status": "requires_payment_method",
-    # "transfer_data": null,
-    # "transfer_group": null
-    # }
 
-
-def handle_stripe_webhook(payload, signature):
+def handle_stripe_webhook(payload_as_string, signature):
     # payment_intent.amount_capturable_updated
     # payment_intent.canceled
     # payment_intent.created
@@ -91,8 +50,13 @@ def handle_stripe_webhook(payload, signature):
     # payment_intent.processing
     # payment_intent.succeeded
 
+    # print(">> handle_stripe_webhook, signature:", signature)
+    # print(">> signature:", signature)
+    # print(">> wh secret:", config.STRIPE_WEBHOOK_SECRET)
+    # print(">> payload:", payload_as_string)
+
     try:
-        event = stripe.Webhook.construct_event(payload, signature, config.STRIPE_WEBHOOK_SECRET)
+        event = stripe.Webhook.construct_event(payload_as_string, signature, config.STRIPE_WEBHOOK_SECRET)
     except ValueError as ex:
         print('handle_stripe_webhook value error:', ex)
         raise Http400Error()
@@ -100,7 +64,13 @@ def handle_stripe_webhook(payload, signature):
         print('handle_stripe_webhook signature error:', ex)
         raise Http400Error()
 
-    print('webhook constructed event:', event)
+    if event.type == 'payment_intent.succeeded':
+        payment = event.data.object
 
-    # if event.status == 'payment_intent.succeeded':
-    #     pass
+        if payment.object == 'payment_intent':
+            return purchase_controller.activate_purchase(payment.metadata.purchase_id, payment_status='success')
+    elif event.type == 'payment_intent.payment_failed':
+        purchase_controller.fail_purchase(payment.metadata.purchase_id)
+        print(">> Payment failed", payload_as_string)
+        error = event.data.object.last_payment_error
+        raise Http400Error(error.message)

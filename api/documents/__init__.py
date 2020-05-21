@@ -188,8 +188,6 @@ def get_document(document_id):
 
     result = {'document': document.to_json()}
 
-    print(">>>> got document", document)
-
     user_purchase = document_controller.get_user_document_purchase(g.user, document, False)
 
     if user_purchase:

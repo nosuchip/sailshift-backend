@@ -2,6 +2,9 @@ from flask import Blueprint, request, g
 from backend.common.decorators import validate_schema, login_required
 from backend.api.payments.schema import CreatePaymentIntentSchema
 from backend.api.payments import payment_controller
+from backend.api.payments import purchase_controller
+from backend.common.decorators import user_required
+from backend.common.errors import Http404Error
 
 blueprint = Blueprint('payments', __name__, url_prefix='/api/payments')
 
@@ -17,5 +20,20 @@ def create_payment_intent(params):
 
 @blueprint.route('/stripe/webhook', methods=['POST'])
 def handle_stripe_webhook():
-    signature = request.headers['HTTP_STRIPE_SIGNATURE']
-    payment_controller.handle_stripe_webhook(request.json, signature)
+    signature = request.headers.get('Stripe-Signature', None)
+    payload_str = request.data.decode("utf-8")
+
+    payment_controller.handle_stripe_webhook(payload_str, signature)
+
+    return {'success': True}
+
+
+@blueprint.route('/check/<payment_id>', methods=['GET'])
+@user_required
+def check_user_document_payment(payment_id):
+    purchase = purchase_controller.get_purchase(payment_id=payment_id)
+
+    if not purchase or purchase.user_id != g.user.id:
+        raise Http404Error('Purchase not found')
+
+    return {'purchase': purchase.to_json()}

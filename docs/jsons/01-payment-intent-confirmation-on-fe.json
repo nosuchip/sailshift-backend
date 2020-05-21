@@ -1,0 +1,23 @@
+{
+  "id": "pi_1Gkv3FJtdDvmMFZWnkQspCQg",
+  "object": "payment_intent",
+  "amount": 2150,
+  "canceled_at": null,
+  "cancellation_reason": null,
+  "capture_method": "automatic",
+  "client_secret": "pi_1Gkv3FJtdDvmMFZWnkQspCQg_secret_KQILtahlfZ8mIvX4F3PaaWjRb",
+  "confirmation_method": "automatic",
+  "created": 1589993153,
+  "currency": "usd",
+  "description": null,
+  "last_payment_error": null,
+  "livemode": false,
+  "next_action": null,
+  "payment_method": "pm_1Gkv3XJtdDvmMFZWA05Fisf8",
+  "payment_method_types": ["card"],
+  "receipt_email": "nosuchip@gmail.com",
+  "setup_future_usage": null,
+  "shipping": null,
+  "source": null,
+  "status": "succeeded"
+}

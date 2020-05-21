@@ -1,0 +1,51 @@
+{
+  "amount": 2150,
+  "amount_capturable": 0,
+  "amount_received": 0,
+  "application": null,
+  "application_fee_amount": null,
+  "canceled_at": null,
+  "cancellation_reason": null,
+  "capture_method": "automatic",
+  "charges": {
+    "data": [],
+    "has_more": false,
+    "object": "list",
+    "total_count": 0,
+    "url": "/v1/charges?payment_intent=pi_1Gkv3FJtdDvmMFZWnkQspCQg"
+  },
+  "client_secret": "pi_1Gkv3FJtdDvmMFZWnkQspCQg_secret_KQILtahlfZ8mIvX4F3PaaWjRb",
+  "confirmation_method": "automatic",
+  "created": 1589993153,
+  "currency": "usd",
+  "customer": null,
+  "description": null,
+  "id": "pi_1Gkv3FJtdDvmMFZWnkQspCQg",
+  "invoice": null,
+  "last_payment_error": null,
+  "livemode": false,
+  "metadata": {
+    "purchase_id": "24"
+  },
+  "next_action": null,
+  "object": "payment_intent",
+  "on_behalf_of": null,
+  "payment_method": null,
+  "payment_method_options": {
+    "card": {
+      "installments": null,
+      "request_three_d_secure": "automatic"
+    }
+  },
+  "payment_method_types": ["card"],
+  "receipt_email": "nosuchip@gmail.com",
+  "review": null,
+  "setup_future_usage": null,
+  "shipping": null,
+  "source": null,
+  "statement_descriptor": null,
+  "statement_descriptor_suffix": null,
+  "status": "requires_payment_method",
+  "transfer_data": null,
+  "transfer_group": null
+}

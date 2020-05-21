@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Column, String, Integer
+from sqlalchemy import Column, String, Integer, Float
 from sqlalchemy.dialects.mysql import TEXT
 from backend.db import Base
 from backend.db.types import GUID
@@ -15,6 +15,7 @@ class Document(Base):
     text = Column(TEXT(2048))
     url = Column(String(500), nullable=False, unique=True)
     rank = Column(Integer, nullable=False, default=0)
+    price = Column(Float(), nullable=True)
 
     def __str__(self):
         return f'<Document {self.title}>'
@@ -27,4 +28,5 @@ class Document(Base):
             'description': self.description,
             'text': self.text,
             'url': self.url,
+            'price': self.price
         }
