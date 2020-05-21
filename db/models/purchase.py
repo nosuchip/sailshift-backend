@@ -26,15 +26,19 @@ class Purchase(Base):
     def __str__(self):
         return f'<Purchase {self.document_id} by {self.user_id}, valid until {self.valid_until}>'
 
-    def to_json(self):
-        return {
+    def to_json(self, short=True):
+        data = {
             'id': self.id,
             'purchased_at': self.purchased_at,
             'valid_until': self.valid_until,
             'download_url': self.download_url,
             'document_id': self.document_id,
             'user_id': self.user_id,
-            'payment_id': self.payment_id,
-            'payment_status': self.payment_status,
-            'payment_data': self.payment_data
         }
+
+        if not short:
+            data['payment_id'] = self.payment_id,
+            data['payment_status'] = self.payment_status,
+            data['payment_data'] = self.payment_data
+
+        return data

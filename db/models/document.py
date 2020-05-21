@@ -20,13 +20,17 @@ class Document(Base):
     def __str__(self):
         return f'<Document {self.title}>'
 
-    def to_json(self):
-        return {
-            'id': self.id,
+    def to_json(self, short=False):
+        data = {
+            'id': str(self.id),
             'title': self.title,
             'organization': self.organization,
             'description': self.description,
-            'text': self.text,
-            'url': self.url,
-            'price': self.price
         }
+
+        if not short:
+            data['text'] = self.text
+            data['url'] = self.url
+            data['price'] = self.price
+
+        return data

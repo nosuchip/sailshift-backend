@@ -120,21 +120,45 @@ def list_documents(page=0, page_size=10):
 def list_past_user_documents(user, page=0, page_size=10):
     now = datetime.now()
 
-    documents = session.query(Document).filter(
+    pairs = session.query(Document, Purchase).filter(
         Document.purchases.any(and_(Purchase.user_id == user.id, Purchase.valid_until < now))
+    ).filter(
+        Purchase.document_id == Document.id
+    ).filter(
+        Purchase.payment_status == 'success'
     ).limit(page_size).offset(page*page_size).all()
 
-    return documents
+    results = []
+
+    for doc, purchase in pairs:
+        data = purchase.to_json()
+        data['document'] = doc.to_json(short=True)
+
+        results.append(data)
+
+    return results
 
 
 def list_actual_user_documents(user, page=0, page_size=10):
     now = datetime.now()
 
-    documents = session.query(Document).filter(
+    pairs = session.query(Document, Purchase).filter(
         Document.purchases.any(and_(Purchase.user_id == user.id, Purchase.valid_until >= now))
+    ).filter(
+        Purchase.document_id == Document.id
+    ).filter(
+        Purchase.payment_status == 'success'
     ).limit(page_size).offset(page*page_size).all()
 
-    return documents
+    results = []
+
+    for doc, purchase in pairs:
+        data = purchase.to_json()
+        data['document'] = doc.to_json(short=True)
+
+        results.append(data)
+
+    return results
 
 
 def search_documents(query, title=None, organization=None, department=None, text=None, page=None, page_size=None):

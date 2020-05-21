@@ -36,15 +36,13 @@ def get_popular_documents():
 @blueprint.route('/my', methods=['GET'])
 @user_required
 def get_my_documents():
-    documents = document_controller.list_actual_user_documents(g.user)
-    return {'data': [document.to_json() for document in documents]}
+    current = document_controller.list_actual_user_documents(g.user)
+    past = document_controller.list_past_user_documents(g.user)
 
-
-@blueprint.route('/past', methods=['GET'])
-@user_required
-def get_my_past_documents():
-    documents = document_controller.list_past_user_documents(g.user)
-    return {'data': [document.to_json() for document in documents]}
+    return {'data': {
+        'current': current,
+        'past': past
+    }}
 
 
 @blueprint.route('/search', methods=['POST'])

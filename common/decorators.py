@@ -35,8 +35,8 @@ def json_response(fn):
             else:
                 payload = res
         except HttpError as ex:
-            print("json_response HttpError:", ex)
-            traceback.print_exc()
+            # print("json_response HttpError:", ex)
+            # traceback.print_exc()
             status = ex.status
             payload = {'error': ex.message, 'data': ex.payload or {}}
         except BadRequest as ex:
