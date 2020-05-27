@@ -21,7 +21,9 @@ def create_app():
     app.register_blueprint(accounts.blueprint)
     app.register_blueprint(documents.blueprint)
     app.register_blueprint(payments.blueprint)
-    app.register_blueprint(non_api.blueprint)
     app.register_blueprint(service.blueprint)
+
+    # Use last
+    app.register_blueprint(non_api.blueprint)
 
     return app
