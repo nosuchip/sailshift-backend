@@ -6,6 +6,7 @@ from backend.api import accounts
 from backend.api import documents
 from backend.api import payments
 from backend.api import non_api
+from backend.api import service
 from backend.db import init_db
 
 
@@ -21,5 +22,6 @@ def create_app():
     app.register_blueprint(documents.blueprint)
     app.register_blueprint(payments.blueprint)
     app.register_blueprint(non_api.blueprint)
+    app.register_blueprint(service.blueprint)
 
     return app
