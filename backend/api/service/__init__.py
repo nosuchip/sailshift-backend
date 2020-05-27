@@ -9,4 +9,9 @@ def healthcheck():
 
 @blueprint.route('/headers', methods=['GET'])
 def headers():
-    return {'headers': request.headers}
+    result = {}
+
+    for header, value in request.headers.items():
+        result[header] = value
+
+    return {'headers': result}
