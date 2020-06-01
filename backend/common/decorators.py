@@ -8,6 +8,7 @@ from backend.common.errors import HttpError, Http403Error, Http400Error
 from backend.api.accounts.user_controller import load_user_from_token
 from backend import config
 from backend.db import enums
+from backend.common.logger import logger
 
 
 def apply_decorators(*decs):
@@ -35,22 +36,22 @@ def json_response(fn):
             else:
                 payload = res
         except HttpError as ex:
-            # print("json_response HttpError:", ex)
+            # logger.exception("json_response HttpError:", ex)
             # traceback.print_exc()
             status = ex.status
             payload = {'error': ex.message, 'data': ex.payload or {}}
         except BadRequest as ex:
-            print("json_response BadRequest:", ex)
+            logger.exception("json_response BadRequest:", ex)
             traceback.print_exc()
             status = 400
             payload = {'error': 'Malformed payload'}
         except Exception as ex:
-            print("json_response Exception:", ex)
+            logger.exception("json_response Exception:", ex)
             traceback.print_exc()
             payload = {'error': 'Server error'}
             status = 500
 
-        print("json_response ok", status, payload)
+        logger.debug("json_response ok", status, payload)
 
         return make_response(payload, status)
     return wrapper
@@ -65,7 +66,7 @@ def validate_schema(marshmallow_schema, source=None):
                 params = marshmallow_schema().load(data_to_validate or {})
                 return f(*args, **kwargs, params=params)
             except ValidationError as ex:
-                print("validate_schema ValidationError:", ex)
+                logger.exception("validate_schema ValidationError:", ex)
                 raise Http400Error('Field validation failed', ex.messages)
 
         return wrapper

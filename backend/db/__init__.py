@@ -1,8 +1,9 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-
 from backend import config
+from backend.common.logger import logger
+
 
 engine = create_engine(config.DATABASE_URI, convert_unicode=True, echo=True)
 db_session = scoped_session(sessionmaker(autocommit=False,
@@ -22,5 +23,4 @@ def init_db():
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as ex:
-        print("Unable to create DB models:")
-        print(ex)
+        logger.exception("Unable to create DB models:", ex)

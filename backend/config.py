@@ -3,6 +3,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+APP_NAME = 'sailshift'
+
 # mandatory
 APP_SECRET_KEY = os.environ['APP_SECRET_KEY']
 DATABASE_URI = os.environ['DATABASE_URI']

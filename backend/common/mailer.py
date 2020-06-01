@@ -3,6 +3,8 @@ from jinja2 import Environment, FileSystemLoader, select_autoescape
 import sendgrid
 from sendgrid.helpers.mail import Email, To, Mail
 from backend import config
+from backend.common.logger import logger
+
 
 jinja_loader = FileSystemLoader([
     path.join(path.dirname(__file__), '..', 'templates')
@@ -33,6 +35,6 @@ def send(to, template, context=None, subject=None):
 
     response = sendgridClient.client.mail.send.post(request_body=mail.get())
 
-    print(response.status_code)
-    print(response.body)
-    print(response.headers)
+    logger.debug(response.status_code)
+    logger.debug(response.body)
+    logger.debug(response.headers)

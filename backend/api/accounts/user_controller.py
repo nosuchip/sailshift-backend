@@ -8,6 +8,7 @@ from backend.db import session
 from backend.common.errors import HttpError, Http404Error, Http403Error, Http401Error, Http409Error
 from backend.common import jwt
 from backend.db import enums
+from backend.common.logger import logger
 
 
 def get_user(email):
@@ -44,7 +45,7 @@ def load_user_from_token(token):
     except HttpError as ex:
         raise ex
     except Exception as ex:
-        print('load_user_from_token unhandled error:', ex)
+        logger.exception('load_user_from_token unhandled error:', ex)
         raise Http401Error(f'Login required')
 
 

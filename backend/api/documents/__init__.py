@@ -22,6 +22,7 @@ from backend.common import s3
 from backend.db.models.document import Document
 from backend.db import session
 from backend.common import mailer
+from backend.common.logger import logger
 
 
 blueprint = Blueprint('documents', __name__, url_prefix='/api/documents')
@@ -144,7 +145,7 @@ def admin_grant_document_download(params):
                 'Document access granted'
             )
         except Exception as ex:
-            print(f'Unable to send email to user {user.email}:', ex)
+            logger.exception('Unable to send email to user {user.email}:', ex)
 
     return {
         'document': document.to_json(),

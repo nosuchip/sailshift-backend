@@ -9,11 +9,15 @@ from backend.api import non_api
 from backend.api import service
 from backend.db import init_db
 
+from backend.common.logger import logger
+
+from backend import config
+
 
 def create_app():
     init_db()
 
-    app = Flask(__name__)
+    app = Flask(config.APP_NAME)
     # CORS(app, resources={r"/api/*": {"origins": "*"}})
     CORS(app)
     logging.getLogger('flask_cors').level = logging.DEBUG
@@ -28,9 +32,7 @@ def create_app():
 
     @app.errorhandler(Exception)
     def handle_exception(e):
-        print("Unandled exception in app")
-        print(e)
-
+        logger.exception("Unandled exception in app", e)
         raise e
 
     return app

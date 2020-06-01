@@ -4,8 +4,8 @@ from backend import config
 from backend.common.errors import Http400Error, Http404Error
 from backend.db.models.purchase import Purchase
 from backend.db.models.document import Document
-
 from backend.common import s3
+from backend.common.logger import logger
 
 
 def get_purchase(purchase_id=None, payment_id=None):
@@ -65,7 +65,7 @@ def activate_purchase(purchase_id, expires_in=config.DOCUMENT_DOWNLOAD_EXPIRATIO
     purchase = get_purchase(purchase_id=purchase_id)
 
     if purchase.purchased_at and purchase.valid_until:
-        print(f"Purchase {purchase_id} already activated, skip")
+        logger.warn(f"Purchase {purchase_id} already activated, skip")
         return purchase
 
     document = session.query(Document).get(purchase.document_id)
@@ -88,7 +88,7 @@ def fail_purchase(purchase_id):
     purchase = get_purchase(purchase_id=purchase_id)
 
     if purchase.purchased_at and purchase.valid_until:
-        print(f"Purchase {purchase_id} already activated, skip")
+        logger.warn(f"Purchase {purchase_id} already activated, skip")
         return purchase
 
     purchase.payment_status = 'failed'

@@ -3,6 +3,7 @@ from pyppeteer import launch
 from backend import config
 from backend.db import session
 from backend.db.models.prerender import Prerender
+from backend.common.logger import logger
 
 
 async def render_url(url):
@@ -17,7 +18,7 @@ async def render_url(url):
         full_url = urljoin(config.SITE_URL, url)
         path = urlparse(full_url).path
         page = await browser.newPage()
-        print(f'Prerendering URL {full_url}')
+        logger.info(f'Prerendering URL {full_url}')
         await page.goto(full_url)
         html = await page.evaluate('() => document.documentElement.outerHTML')
 
@@ -29,7 +30,7 @@ async def render_url(url):
         session.add(prerender)
         session.commit()
     except Exception as ex:
-        print(ex)
+        logger.exception(ex)
     finally:
         await browser.close()
 

@@ -1,11 +1,11 @@
 import stripe
-from datetime import datetime, timedelta
 from backend import config
 from backend.db.models.purchase import Purchase
 from backend.db import session, enums
 from backend.common.errors import Http400Error
 from backend.api.documents import document_controller
 from backend.api.payments import purchase_controller
+from backend.common.logger import logger
 
 stripe.api_key = config.STRIPE_API_KEY
 
@@ -50,18 +50,18 @@ def handle_stripe_webhook(payload_as_string, signature):
     # payment_intent.processing
     # payment_intent.succeeded
 
-    # print(">> handle_stripe_webhook, signature:", signature)
-    # print(">> signature:", signature)
-    # print(">> wh secret:", config.STRIPE_WEBHOOK_SECRET)
-    # print(">> payload:", payload_as_string)
+    logger.debug(">> handle_stripe_webhook, signature:", signature)
+    logger.debug(">> signature:", signature)
+    logger.debug(">> wh secret:", config.STRIPE_WEBHOOK_SECRET)
+    logger.debug(">> payload:", payload_as_string)
 
     try:
         event = stripe.Webhook.construct_event(payload_as_string, signature, config.STRIPE_WEBHOOK_SECRET)
     except ValueError as ex:
-        print('handle_stripe_webhook value error:', ex)
+        logger.exception('handle_stripe_webhook value error:', ex)
         raise Http400Error()
     except stripe.error.SignatureVerificationError as ex:
-        print('handle_stripe_webhook signature error:', ex)
+        logger.exception('handle_stripe_webhook signature error:', ex)
         raise Http400Error()
 
     if event.type == 'payment_intent.succeeded':
@@ -71,6 +71,6 @@ def handle_stripe_webhook(payload_as_string, signature):
             return purchase_controller.activate_purchase(payment.metadata.purchase_id, payment_status='success')
     elif event.type == 'payment_intent.payment_failed':
         purchase_controller.fail_purchase(payment.metadata.purchase_id)
-        print(">> Payment failed", payload_as_string)
+        logger.exception(">> Payment failed", payload_as_string)
         error = event.data.object.last_payment_error
         raise Http400Error(error.message)

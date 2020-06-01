@@ -7,6 +7,7 @@ from backend.common.errors import Http400Error, Http404Error, Http401Error
 from backend import config
 from backend.common import mailer
 from backend.common import jwt
+from backend.common.logger import logger
 
 blueprint = Blueprint('accounts', __name__, url_prefix='/api/accounts')
 
@@ -48,7 +49,7 @@ def register(params):
     user = controller.create_user(
         email=params['email'],
         password=params['password'],
-        name=params['name']
+        name=params.get('name')
     )
 
     confirmation_url = config.get_url('verify', controller.issue_token(user))
@@ -61,7 +62,7 @@ def register(params):
             'Please verify your email'
         )
     except Exception as ex:
-        print(f'Unable to send email to user {user.email}:', ex)
+        logger.exception(f'Unable to send email to user {user.email}:', ex)
 
     return {
         'user': {
@@ -87,7 +88,7 @@ def forgot_password(params):
             'Password restore'
         )
     except Exception as ex:
-        print(f'Unable to send email to user {user.email}:', ex)
+        logger.exception(f'Unable to send email to user {user.email}:', ex)
 
     return {}
 
