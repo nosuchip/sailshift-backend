@@ -36,6 +36,6 @@ def create_app():
         if getattr(e, 'code', None) == 500:
             logger.exception(e)
 
-        return e
+        return {'success': False, 'error': f'{e}'}
 
     return app
