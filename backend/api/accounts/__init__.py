@@ -39,6 +39,11 @@ def login(params):
         'token': controller.issue_token(user)
     }
 
+@blueprint.route('/register', methods=['GET'])
+@json_response
+def register1():
+    raise Exception("FUCK!")
+
 
 @blueprint.route('/register', methods=['POST'])
 @api_validation(RegisterSchema)
@@ -62,7 +67,8 @@ def register(params):
             'Please verify your email'
         )
     except Exception as ex:
-        logger.exception(f'Unable to send email to user {user.email}:', ex)
+        logger.exception(f'Unable to send email to user {user.email}')
+        logger.exception(ex)
 
     return {
         'user': {
@@ -88,7 +94,8 @@ def forgot_password(params):
             'Password restore'
         )
     except Exception as ex:
-        logger.exception(f'Unable to send email to user {user.email}:', ex)
+        logger.exception(f'Unable to send email to user {user.email}')
+        logger.exception(ex)
 
     return {}
 

@@ -45,7 +45,8 @@ def load_user_from_token(token):
     except HttpError as ex:
         raise ex
     except Exception as ex:
-        logger.exception('load_user_from_token unhandled error:', ex)
+        logger.exception('load_user_from_token unhandled error:')
+        logger.exception(ex)
         raise Http401Error(f'Login required')
 
 

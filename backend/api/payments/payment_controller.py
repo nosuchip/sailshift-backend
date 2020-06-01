@@ -58,10 +58,12 @@ def handle_stripe_webhook(payload_as_string, signature):
     try:
         event = stripe.Webhook.construct_event(payload_as_string, signature, config.STRIPE_WEBHOOK_SECRET)
     except ValueError as ex:
-        logger.exception('handle_stripe_webhook value error:', ex)
+        logger.exception('handle_stripe_webhook value error:')
+        logger.exception(ex)
         raise Http400Error()
     except stripe.error.SignatureVerificationError as ex:
-        logger.exception('handle_stripe_webhook signature error:', ex)
+        logger.exception('handle_stripe_webhook signature error:')
+        logger.exception(ex)
         raise Http400Error()
 
     if event.type == 'payment_intent.succeeded':
@@ -71,6 +73,7 @@ def handle_stripe_webhook(payload_as_string, signature):
             return purchase_controller.activate_purchase(payment.metadata.purchase_id, payment_status='success')
     elif event.type == 'payment_intent.payment_failed':
         purchase_controller.fail_purchase(payment.metadata.purchase_id)
-        logger.exception(">> Payment failed", payload_as_string)
+        logger.exception("Payment failed")
+        logger.exception(payload_as_string)
         error = event.data.object.last_payment_error
         raise Http400Error(error.message)

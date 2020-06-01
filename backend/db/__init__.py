@@ -23,4 +23,5 @@ def init_db():
     try:
         Base.metadata.create_all(bind=engine)
     except Exception as ex:
-        logger.exception("Unable to create DB models:", ex)
+        logger.exception("Unable to create DB models:")
+        logger.exception(ex)

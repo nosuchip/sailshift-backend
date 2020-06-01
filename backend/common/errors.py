@@ -1,8 +1,15 @@
+import json
+
+
 class HttpError(Exception):
     def __init__(self, status, message, payload=None):
         self.status = status
         self.message = message
         self.payload = payload or {}
+
+    def __str__(self):
+        return f"HTTP Error {self.status}: {self.message}" + (json.dumps(
+            self.payload) if self.payload else "")
 
 
 class Http404Error(HttpError):

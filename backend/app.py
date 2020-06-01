@@ -1,3 +1,4 @@
+import traceback
 import logging
 from flask import Flask
 from flask_cors import CORS
@@ -32,7 +33,9 @@ def create_app():
 
     @app.errorhandler(Exception)
     def handle_exception(e):
-        logger.exception("Unandled exception in app", e)
-        raise e
+        if getattr(e, 'code', None) == 500:
+            logger.exception(e)
+
+        return e
 
     return app

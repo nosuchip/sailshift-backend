@@ -145,7 +145,8 @@ def admin_grant_document_download(params):
                 'Document access granted'
             )
         except Exception as ex:
-            logger.exception('Unable to send email to user {user.email}:', ex)
+            logger.exception('Unable to send email to user {user.email}:')
+            logger.exception(ex)
 
     return {
         'document': document.to_json(),

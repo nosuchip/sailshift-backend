@@ -36,18 +36,21 @@ def json_response(fn):
             else:
                 payload = res
         except HttpError as ex:
-            # logger.exception("json_response HttpError:", ex)
+            # logger.exception("json_response HttpError")
+            logger.exception(ex)
             # traceback.print_exc()
             status = ex.status
             payload = {'error': ex.message, 'data': ex.payload or {}}
         except BadRequest as ex:
-            logger.exception("json_response BadRequest:", ex)
-            traceback.print_exc()
+            # logger.exception("json_response BadRequest")
+            logger.exception(ex)
+            # traceback.print_exc()
             status = 400
             payload = {'error': 'Malformed payload'}
         except Exception as ex:
-            logger.exception("json_response Exception:", ex)
-            traceback.print_exc()
+            # logger.exception("json_response Exception")
+            logger.exception(ex)
+            # traceback.print_exc()
             payload = {'error': 'Server error'}
             status = 500
 
@@ -66,7 +69,8 @@ def validate_schema(marshmallow_schema, source=None):
                 params = marshmallow_schema().load(data_to_validate or {})
                 return f(*args, **kwargs, params=params)
             except ValidationError as ex:
-                logger.exception("validate_schema ValidationError:", ex)
+                logger.exception("validate_schema ValidationError")
+                logger.exception(ex)
                 raise Http400Error('Field validation failed', ex.messages)
 
         return wrapper
