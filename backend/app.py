@@ -26,4 +26,11 @@ def create_app():
     # Use last
     app.register_blueprint(non_api.blueprint)
 
+    @app.errorhandler(Exception)
+    def handle_exception(e):
+        print("Unandled exception in app")
+        print(e)
+
+        raise e
+
     return app
