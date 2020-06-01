@@ -16,4 +16,4 @@ def catch_all(path):
 
         return send_file(static_html_path)
 
-    return Http404Error(f"Resource {path} doesn't served by static handler")
+    raise Http404Error(f"Resource {path} doesn't served by static handler")
