@@ -9,6 +9,6 @@ blueprint = Blueprint('non_api', __name__)
 @blueprint.route('/<path:path>')
 def catch_all(path):
     print(f"Static fallback file handler for path {path}")
-    static_html_path = os.path.join(os.path.dirname(__file__), '../../static/dist/index.html')
+    static_html_path = os.path.join(os.path.dirname(__file__), '../../static/index.html')
 
     return send_file(static_html_path)
