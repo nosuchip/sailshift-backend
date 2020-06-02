@@ -11,4 +11,16 @@
 {% endblock text %}
 
 {% block buttons -%}
+    {% if type == 'success' %}
+        <td
+            class="text-button"
+            style="background:#ef3050; color:#ffffff; font-family:Arial ,sans-serif; font-size:14px; line-height:18px; padding:12px 20px; text-align:center; text-transform:uppercase; font-weight:bold; border-radius:22px;"
+        >
+            <a href="/account/login"
+                style="color:#ffffff; text-decoration:none;"
+            >
+                <span style="color:#ffffff; text-decoration:none;">Login</span>
+            </a>
+        </td>
+    {% endif  %}
 {% endblock buttons %}

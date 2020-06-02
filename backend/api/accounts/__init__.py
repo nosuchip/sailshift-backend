@@ -138,7 +138,7 @@ def verify_account(token):
 
         if not is_xhr:
             return render_template(
-                'email/email_confirmation.jinja2',
+                'verify.jinja2',
                 message='Your account is activated not. Please ' +
                 '<a href="/account/login">login.</a>',
                 type='success')

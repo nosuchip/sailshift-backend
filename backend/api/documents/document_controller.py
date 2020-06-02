@@ -203,3 +203,8 @@ def search_documents(query, title=None, organization=None, department=None, text
 def get_popular_documents(count=5):
     documents = session.query(Document).order_by(Document.rank.desc()).limit(count).all()
     return documents
+
+
+def delete_document(document):
+    session.delete(document)
+    session.commit()

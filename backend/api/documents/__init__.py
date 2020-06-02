@@ -103,18 +103,18 @@ def admin_update_documents(document_id, params):
 @blueprint.route('/admin/<document_id>', methods=['DELETE'])
 @admin_required
 def admin_delete_documents(document_id):
-    document = Document.query.get(document_id)
+    document = document_controller.get_document(document_id)
 
     if not document:
         raise Http404Error('Document not found')
 
     try:
         s3.delete_file(document.url)
-        document.delete()
+        document_controller.delete_document(document)
     finally:
-        session.commit()
+        pass
 
-    return {}
+    return {'success': True}
 
 
 @blueprint.route('/admin/download/<document_id>', methods=['GET'])

@@ -50,7 +50,7 @@ print(f'config:DOCUMENT_DOWNLOAD_EXPIRATION_TIME_SEC = {DOCUMENT_DOWNLOAD_EXPIRA
 def get_url(url_key, *parts):
     urls = {
         'verify': '/api/accounts/verify/',  # this is an exceptional case
-        'reset_password': '/accounts/reset_password/',
+        'reset_password': '/account/reset_password/',
     }
 
     return SITE_URL + urls[url_key] + '/'.join([str(i) for i in parts])
