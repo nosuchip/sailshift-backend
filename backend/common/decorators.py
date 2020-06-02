@@ -1,5 +1,4 @@
 import asyncio
-import traceback
 from functools import wraps
 from flask import make_response, request, g
 from werkzeug.exceptions import BadRequest

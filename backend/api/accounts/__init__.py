@@ -1,5 +1,6 @@
 import datetime
-from flask import Blueprint
+import traceback
+from flask import Blueprint, render_template, make_response, request
 from backend.common.decorators import api_validation, json_response
 from backend.api.accounts.schema import LoginSchema, RegisterSchema, ForgotPasswordSchema, ResetPasswordSchema
 from backend.api.accounts import user_controller as controller
@@ -38,6 +39,7 @@ def login(params):
         },
         'token': controller.issue_token(user)
     }
+
 
 @blueprint.route('/register', methods=['GET'])
 @json_response
@@ -122,21 +124,39 @@ def reset_password(params):
 
 
 @blueprint.route('/verify/<token>', methods=['GET'])
-@json_response
 def verify_account(token):
-    if not token:
-        raise Http404Error()
+    is_xhr = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
-    payload = jwt.deserialize(token)
-    user = controller.get_user_by_id(payload['user_id'])
+    try:
+        if not token:
+            raise Http404Error()
 
-    user = controller.activate_user(user)
+        payload = jwt.deserialize(token)
+        user = controller.get_user_by_id(payload['user_id'])
 
-    return {
-        'user': {
-            'id': user.id,
-            'email': user.email,
-            'name': user.name,
-            'activated_at': user.activated_at
-        }
-    }
+        user = controller.activate_user(user)
+
+        if not is_xhr:
+            return render_template(
+                'email/email_confirmation.jinja2',
+                message='Your account is activated not. Please ' +
+                '<a href="/account/login">login.</a>',
+                type='success')
+
+        return make_response({
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'name': user.name,
+                'activated_at': user.activated_at
+            }
+        }, 200)
+    except Exception as ex:
+        print('Verify exception:', ex)
+        print('is XHR:', is_xhr)
+        if not is_xhr:
+            return render_template('verify.jinja2',
+                                   message='Token is invalid or already used',
+                                   type='error')
+
+        return make_response({'message': 'Token is invalid or already used', 'success': False})

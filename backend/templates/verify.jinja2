@@ -1,0 +1,14 @@
+{% extends "email/layout.jinja2" %}
+
+{% block text -%}
+<h1
+    {% if type == "error" %}
+    style="color: #C62828"
+    {% else %}
+    style="color: #2E7D32"
+    {% endif %}
+>{{ message }}</h1>
+{% endblock text %}
+
+{% block buttons -%}
+{% endblock buttons %}

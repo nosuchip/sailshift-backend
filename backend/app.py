@@ -18,7 +18,7 @@ from backend import config
 def create_app():
     init_db()
 
-    app = Flask(config.APP_NAME)
+    app = Flask(config.APP_NAME, template_folder='backend/templates')
     # CORS(app, resources={r"/api/*": {"origins": "*"}})
     CORS(app)
     logging.getLogger('flask_cors').level = logging.DEBUG
