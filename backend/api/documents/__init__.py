@@ -176,7 +176,8 @@ async def prerender_document(document_id):
 @user_required
 def list_documents():
     page = int(request.args.get('page', 0))
-    documents = document_controller.list_documents(page)
+    page_size = int(request.args.get('perPage', 10))
+    documents = document_controller.list_documents(page, page_size)
 
     return {'data': [document.to_json() for document in documents]}
 

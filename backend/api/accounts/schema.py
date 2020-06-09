@@ -21,3 +21,14 @@ class ResetPasswordSchema(Schema):
     password = fields.Str(required=True)
     confirmation = fields.Str(required=True)
     token = fields.Str(required=True)
+
+
+class UpdateUserSchema(Schema):
+    password = fields.Str(required=False)
+    confirmation = fields.Str(required=False)
+    name = fields.Str(required=False)
+    email = fields.Str(required=False)
+    active = fields.Bool(required=False)
+    activated_at = fields.Str(required=False)
+    id = fields.Number(required=False)
+    role = fields.Str(required=False)

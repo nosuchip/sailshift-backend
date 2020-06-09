@@ -90,19 +90,26 @@ def create_user(**kwargs):
     return user
 
 
-def update_user(user, **kwargs):
+def update_user(is_admin, user, **kwargs):
     if 'name' in kwargs:
         user.name = kwargs['name']
 
     if 'password' in kwargs:
         user.password = hash_password(kwargs['password'])
 
+    if is_admin:
+        if 'role' in kwargs:
+            user.role = kwargs['role']
+
+        if 'active' in kwargs:
+            user.active = bool(kwargs['active'])
+
     session.commit()
 
     return user
 
 
-def activate_user(user):
+def verify_user(user):
     if not user.active:
         raise Http403Error('User deactivated')
 
@@ -118,3 +125,14 @@ def activate_user(user):
 def issue_token(user):
     payload = {'user_id': user.id}
     return jwt.serialize(payload)
+
+
+def delete_user(user_id):
+    session.query(User).filter_by(id=user_id).delete()
+    session.commit()
+
+
+def list_users(page=0, page_size=10):
+    users = session.query(User).order_by(
+        User.id.asc()).limit(page_size).offset(page * page_size).all()
+    return users

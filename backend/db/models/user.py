@@ -15,3 +15,13 @@ class User(Base):
 
     def __str__(self):
         return f'<User {self.name} ({self.email})>'
+
+    def to_json(self):
+        return {
+            'id': self.id,
+            'email': self.email,
+            'name': self.name,
+            'activated_at': self.activated_at,
+            'active': self.active,
+            'role': self.role.value if self.role else ''
+        }

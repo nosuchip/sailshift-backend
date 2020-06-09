@@ -2,12 +2,16 @@ from marshmallow import Schema, fields
 
 
 class DocumentCreateSchema(Schema):
+    price = fields.Number(required=False)
     title = fields.Str(required=True)
     organization = fields.Str(required=False)
     description = fields.Str(required=False)
 
 
 class DocumentUpdateSchema(Schema):
+    id = fields.Str(required=True)
+    price = fields.Number(required=True)
+    url = fields.Str(required=False)
     title = fields.Str(required=False)
     organization = fields.Str(required=False)
     description = fields.Str(required=False)

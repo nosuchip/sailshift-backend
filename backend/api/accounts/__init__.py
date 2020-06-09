@@ -1,10 +1,16 @@
 import datetime
-import traceback
-from flask import Blueprint, render_template, make_response, request
-from backend.common.decorators import api_validation, json_response
-from backend.api.accounts.schema import LoginSchema, RegisterSchema, ForgotPasswordSchema, ResetPasswordSchema
-from backend.api.accounts import user_controller as controller
+from flask import Blueprint, render_template, make_response, request, g
+from backend.common.decorators import api_validation, json_response, admin_required, user_required
+from backend.api.accounts.schema import (
+    LoginSchema,
+    RegisterSchema,
+    ForgotPasswordSchema,
+    ResetPasswordSchema,
+    UpdateUserSchema
+)
+from backend.api.accounts import user_controller
 from backend.common.errors import Http400Error, Http404Error, Http401Error
+from backend.db import enums
 from backend import config
 from backend.common import mailer
 from backend.common import jwt
@@ -16,7 +22,7 @@ blueprint = Blueprint('accounts', __name__, url_prefix='/api/accounts')
 @blueprint.route('/login', methods=['POST'])
 @api_validation(LoginSchema)
 def login(params):
-    user = controller.get_user(params['email'])
+    user = user_controller.get_user(params['email'])
 
     if not user:
         raise Http404Error(f'User not found by key {params["email"]}')
@@ -27,7 +33,7 @@ def login(params):
     if not user.activated_at:
         raise Http401Error(f'User {user.email} accoutn inactive, please activate account by email')
 
-    controller.validate_password(user.password, params['password'])
+    user_controller.validate_password(user.password, params['password'])
 
     return {
         'user': {
@@ -37,7 +43,7 @@ def login(params):
             'activated_at': user.activated_at,
             'role': user.role.value if user.role else ''
         },
-        'token': controller.issue_token(user)
+        'token': user_controller.issue_token(user)
     }
 
 
@@ -53,13 +59,13 @@ def register(params):
     if params['password'] != params['confirmation']:
         raise Http400Error('Password doesn\'t match confirmation')
 
-    user = controller.create_user(
+    user = user_controller.create_user(
         email=params['email'],
         password=params['password'],
         name=params.get('name')
     )
 
-    confirmation_url = config.get_url('verify', controller.issue_token(user))
+    confirmation_url = config.get_url('verify', user_controller.issue_token(user))
 
     try:
         mailer.send(
@@ -85,8 +91,8 @@ def register(params):
 @blueprint.route('/forgot_password', methods=['POST'])
 @api_validation(ForgotPasswordSchema)
 def forgot_password(params):
-    user = controller.get_user(params['email'])
-    forgot_password_url = config.get_url('reset_password', controller.issue_token(user))
+    user = user_controller.get_user(params['email'])
+    forgot_password_url = config.get_url('reset_password', user_controller.issue_token(user))
 
     try:
         mailer.send(
@@ -109,7 +115,7 @@ def reset_password(params):
         raise Http400Error('Password must match confirmation')
 
     payload = jwt.deserialize(params['token'])
-    user = controller.get_user_by_id(payload['user_id'])
+    user = user_controller.get_user_by_id(payload['user_id'])
 
     payload = {
         'password': params['password']
@@ -118,7 +124,7 @@ def reset_password(params):
     if not user.activated_at:
         user.activated_at = datetime.datetime.now()
 
-    controller.update_user(user, **payload)
+    user_controller.update_user(user, **payload)
 
     return {}
 
@@ -132,9 +138,9 @@ def verify_account(token):
             raise Http404Error()
 
         payload = jwt.deserialize(token)
-        user = controller.get_user_by_id(payload['user_id'])
+        user = user_controller.get_user_by_id(payload['user_id'])
 
-        user = controller.activate_user(user)
+        user = user_controller.verify_user(user)
 
         if not is_xhr:
             return render_template(
@@ -160,3 +166,37 @@ def verify_account(token):
                                    type='error')
 
         return make_response({'message': 'Token is invalid or already used', 'success': False})
+
+
+@blueprint.route('/users', methods=['GET'])
+@admin_required
+def list_users():
+    page = int(request.args.get('page', 0))
+    page_size = int(request.args.get('perPage', 10))
+    users = user_controller.list_users(page, page_size)
+
+    return {'data': [user.to_json() for user in users]}
+
+
+@blueprint.route('/<user_id>', methods=['DELETE'])
+@admin_required
+def delete_account(user_id):
+    user_controller.delete_user(user_id)
+
+    return {}
+
+
+@blueprint.route('/<user_id>', methods=['PUT'])
+@api_validation(UpdateUserSchema)
+@user_required
+def update_account(user_id, params):
+    user = user_controller.get_user_by_id(user_id)
+
+    if not user:
+        raise Http404Error('User not found')
+
+    is_admin = g.user.role.value == enums.UserRoles.Admin.value
+
+    user = user_controller.update_user(is_admin, user, **params)
+
+    return {'user': user.to_json()}
