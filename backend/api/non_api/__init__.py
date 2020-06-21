@@ -12,8 +12,30 @@ blueprint = Blueprint('non_api', __name__)
 def catch_all(path):
     logger.warn(f"Static fallback file handler for path {path}")
 
+    # Some special handlers
+
+    if path.endswith('manifest.json'):
+        special_static_path = os.path.join(os.path.dirname(__file__),
+                                           '../../static/manifest.json')
+
+        return send_file(special_static_path)
+
+    if path.endswith('service-worker.js'):
+        special_static_path = os.path.join(os.path.dirname(__file__),
+                                           '../../static/service-worker.js')
+
+        return send_file(special_static_path)
+
+    if 'precache-manifest' in path:
+        special_static_path = os.path.join(os.path.dirname(__file__),
+                                           '../../static/',
+                                           path)
+
+        return send_file(special_static_path)
+
     if 'img' not in path and 'favicon' not in path:
-        static_html_path = os.path.join(os.path.dirname(__file__), '../../static/index.html')
+        static_html_path = os.path.join(os.path.dirname(__file__),
+                                        '../../static/index.html')
 
         return send_file(static_html_path)
 

@@ -18,7 +18,9 @@ from backend import config
 def create_app():
     init_db()
 
-    app = Flask(config.APP_NAME, template_folder='backend/templates')
+    app = Flask(config.APP_NAME,
+                template_folder='backend/templates',
+                static_folder='backend/static')
     # CORS(app, resources={r"/api/*": {"origins": "*"}})
     CORS(app)
     logging.getLogger('flask_cors').level = logging.DEBUG
@@ -33,9 +35,14 @@ def create_app():
 
     @app.errorhandler(Exception)
     def handle_exception(e):
-        if getattr(e, 'code', None) == 500:
+        code = getattr(e, 'code', None)
+
+        if not code:
+            code = getattr(e, 'status', None)
+
+        if code == 500:
             logger.exception(e)
 
-        return {'success': False, 'error': f'{e}'}
+        return {'success': False, 'error': f'{e}'}, 404
 
     return app
