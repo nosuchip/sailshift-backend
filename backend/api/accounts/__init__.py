@@ -47,12 +47,6 @@ def login(params):
     }
 
 
-@blueprint.route('/register', methods=['GET'])
-@json_response
-def register1():
-    raise Exception("FUCK!")
-
-
 @blueprint.route('/register', methods=['POST'])
 @api_validation(RegisterSchema)
 def register(params):
@@ -197,6 +191,6 @@ def update_account(user_id, params):
 
     is_admin = g.user.role.value == enums.UserRoles.Admin.value
 
-    user = user_controller.update_user(is_admin, user, **params)
+    user = user_controller.update_user(user, is_admin, **params)
 
     return {'user': user.to_json()}

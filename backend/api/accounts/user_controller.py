@@ -90,12 +90,14 @@ def create_user(**kwargs):
     return user
 
 
-def update_user(is_admin, user, **kwargs):
+def update_user(user, **kwargs):
     if 'name' in kwargs:
         user.name = kwargs['name']
 
     if 'password' in kwargs:
         user.password = hash_password(kwargs['password'])
+
+    is_admin = kwargs.get('is_admin', None)
 
     if is_admin:
         if 'role' in kwargs:
