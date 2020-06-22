@@ -74,8 +74,8 @@ def admin_upload_document(params):
     excerpt_title, excerpt_text = document_controller.make_document_excerpt(temp_file_path)
     document = document_controller.create_document(
         params['title'],
-        params['organization'],
-        params['description'],
+        params.get('organization', ''),
+        params.get('description', ''),
         uploaded_file_url,
         excerpt_text,
         excerpt_title
