@@ -62,5 +62,6 @@ def create_app():
                 g.session.commit()
 
             g.session.close()
+            g.session = None
 
     return app
