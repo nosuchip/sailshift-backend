@@ -35,21 +35,18 @@ def json_response(fn):
             else:
                 payload = res
         except HttpError as ex:
-            # logger.exception("json_response HttpError")
+            logger.exception("json_response.HttpError")
             logger.exception(ex)
-            # traceback.print_exc()
             status = ex.status
             payload = {'error': ex.message, 'data': ex.payload or {}}
         except BadRequest as ex:
-            # logger.exception("json_response BadRequest")
+            logger.exception("json_response.BadRequest")
             logger.exception(ex)
-            # traceback.print_exc()
             status = 400
             payload = {'error': 'Malformed payload'}
         except Exception as ex:
-            # logger.exception("json_response Exception")
+            logger.exception("json_response.Exception")
             logger.exception(ex)
-            # traceback.print_exc()
             payload = {'error': 'Server error'}
             status = 500
 
@@ -122,3 +119,4 @@ def async_action(f):
     def wrapped(*args, **kwargs):
         return asyncio.run(f(*args, **kwargs))
     return wrapped
+

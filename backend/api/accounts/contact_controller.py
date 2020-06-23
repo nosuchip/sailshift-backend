@@ -9,7 +9,6 @@ def send_contact_us(email, subject, message):
 
         return True
     except Exception as ex:
-        logger.exception(f'Unable to send contact us message')
-        logger.exception(ex)
+        logger.exception(f'send_contact_us error: {ex}')
 
         return False

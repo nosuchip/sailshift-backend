@@ -4,7 +4,7 @@ import os
 import datetime
 
 from backend.db.models.user import User
-from backend.db import session
+from backend import db
 from backend.common.errors import HttpError, Http404Error, Http403Error, Http401Error, Http409Error
 from backend.common import jwt
 from backend.db import enums
@@ -13,14 +13,14 @@ from backend.common.logger import logger
 
 def get_user(email):
     try:
-        return session().query(User).filter_by(email=email).one()
+        return db.get_one(User, email=email)
     except Exception:
         raise Http404Error(f'User "{email}" not found')
 
 
 def get_user_by_id(user_id):
     try:
-        return session().query(User).get(user_id)
+        return db.get_by_id(User, user_id)
     except Exception:
         raise Http404Error(f'User not found')
 
@@ -46,8 +46,7 @@ def load_user_from_token(token):
         logger.exception(f'load_user_from_token HttpError error: ${ex.status} ${ex.message}')
         raise ex
     except Exception as ex:
-        logger.exception('load_user_from_token unhandled error:')
-        logger.exception(ex)
+        logger.exception(f'load_user_from_token unhandled error: {ex}')
         raise Http401Error(f'Login required')
 
 
@@ -71,7 +70,7 @@ def validate_password(stored_password, password):
 def create_user(**kwargs):
     email = kwargs['email']
 
-    count = session().query(User).filter_by(email=email).count()
+    count = db.count(User, email=email)
 
     if count:
         raise Http409Error(f'User with email "{email}"" already exists')
@@ -85,8 +84,7 @@ def create_user(**kwargs):
     user.role = enums.UserRoles.User
     user.password = hash_password(kwargs['password'])
 
-    session().add(user)
-    session().commit()
+    db.add(user)
 
     return user
 
@@ -110,7 +108,7 @@ def update_user(user, **kwargs):
         if 'email' in kwargs:
             user.email = kwargs['email']
 
-    session().commit()
+    db.commit()
 
     return user
 
@@ -123,7 +121,7 @@ def verify_user(user):
         raise Http409Error('User already activated')
 
     user.activated_at = datetime.datetime.now()
-    session().commit()
+    db.commit()
 
     return user
 
@@ -134,11 +132,10 @@ def issue_token(user):
 
 
 def delete_user(user_id):
-    session().query(User).filter_by(id=user_id).delete()
-    session().commit()
+    db.delete(User, user_id)
 
 
+@db.rollback_failed(db.session, 'list_users')
 def list_users(page=0, page_size=10):
-    users = session().query(User).order_by(
+    return db.query(User).order_by(
         User.id.asc()).limit(page_size).offset(page * page_size).all()
-    return users

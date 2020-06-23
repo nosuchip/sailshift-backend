@@ -70,8 +70,7 @@ def register(params):
             'Please verify your email'
         )
     except Exception as ex:
-        logger.exception(f'Unable to send email to user {user.email}')
-        logger.exception(ex)
+        logger.exception(f'Unable to send email to user {user.email}: {ex}')
 
     return {
         'user': {
@@ -97,8 +96,7 @@ def forgot_password(params):
             'Password restore'
         )
     except Exception as ex:
-        logger.exception(f'Unable to send email to user {user.email}')
-        logger.exception(ex)
+        logger.exception(f'forgot_password error: {ex}')
 
     return {}
 
@@ -153,8 +151,8 @@ def verify_account(token):
             }
         }, 200)
     except Exception as ex:
-        print('Verify exception:', ex)
-        print('is XHR:', is_xhr)
+        logger.exception(f'verify_account error: is_xhr={is_xhr}, ex: {ex}')
+
         if not is_xhr:
             return render_template('verify.jinja2',
                                    message='Token is invalid or already used',

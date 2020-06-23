@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from backend.db import session
+from backend import db
 from backend import config
 from backend.common.errors import Http400Error, Http404Error
 from backend.db.models.purchase import Purchase
@@ -12,7 +12,7 @@ def get_purchase(purchase_id=None, payment_id=None):
     if not purchase_id and not payment_id:
         raise Http400Error('Either purchase ID or payment Id must be provided')
 
-    query = session().query(Purchase)
+    query = db.query(Purchase)
 
     if purchase_id:
         query = query.filter_by(id=purchase_id)
@@ -22,6 +22,7 @@ def get_purchase(purchase_id=None, payment_id=None):
     try:
         return query.one()
     except Exception:
+        db.rollback()
         raise Http404Error(f'Purchase not found')
 
 
@@ -34,7 +35,7 @@ def create_purchase(
     payment_data=None
 ):
 
-    document = session().query(Document).get(document_id)
+    document = db.get_by_id(Document, document_id)
 
     if not document:
         raise Http404Error('Document not found')
@@ -55,8 +56,7 @@ def create_purchase(
     purchase.payment_id = payment_id
     purchase.payment_data = payment_data
 
-    session().add(purchase)
-    session().commit()
+    db.add(purchase)
 
     return purchase
 
@@ -68,7 +68,7 @@ def activate_purchase(purchase_id, expires_in=config.DOCUMENT_DOWNLOAD_EXPIRATIO
         logger.warn(f"Purchase {purchase_id} already activated, skip")
         return purchase
 
-    document = session().query(Document).get(purchase.document_id)
+    document = db.get_by_id(Document, purchase.document_id)
 
     purchase.download_url = s3.generate_presigned_url(document.url, expires_in)
     now = datetime.now()
@@ -79,7 +79,7 @@ def activate_purchase(purchase_id, expires_in=config.DOCUMENT_DOWNLOAD_EXPIRATIO
     if payment_status:
         purchase.payment_status = payment_status
 
-    session().commit()
+    db.commit()
 
     return purchase
 
@@ -92,6 +92,6 @@ def fail_purchase(purchase_id):
         return purchase
 
     purchase.payment_status = 'failed'
-    session().commit()
+    db.commit()
 
     return False

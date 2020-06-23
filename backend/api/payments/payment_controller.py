@@ -1,7 +1,8 @@
 import stripe
 from backend import config
 from backend.db.models.purchase import Purchase
-from backend.db import session, enums
+from backend import db
+from backend.db import enums
 from backend.common.errors import Http400Error
 from backend.api.documents import document_controller
 from backend.api.payments import purchase_controller
@@ -20,8 +21,7 @@ def create_payment_intent(user, document_id, amount, currency, payment_method):
     purchase.document_id = document_id
     purchase.user_id = user.id
 
-    session().add(purchase)
-    session().commit()
+    db.add(purchase)
 
     intent = stripe.PaymentIntent.create(
         amount=int(100 * amount),
@@ -37,7 +37,7 @@ def create_payment_intent(user, document_id, amount, currency, payment_method):
     purchase.payment_id = intent.id,
     purchase.payment_data = intent
 
-    session().commit()
+    db.commit()
 
     return (intent.client_secret, purchase)
 
@@ -57,6 +57,7 @@ def handle_stripe_webhook(payload_as_string, signature):
 
     try:
         event = stripe.Webhook.construct_event(payload_as_string, signature, config.STRIPE_WEBHOOK_SECRET)
+        logger.info("Stripe event constructed:", event)
     except ValueError as ex:
         logger.exception('handle_stripe_webhook value error:')
         logger.exception(ex)
@@ -73,7 +74,8 @@ def handle_stripe_webhook(payload_as_string, signature):
             return purchase_controller.activate_purchase(payment.metadata.purchase_id, payment_status='success')
     elif event.type == 'payment_intent.payment_failed':
         purchase_controller.fail_purchase(payment.metadata.purchase_id)
+
         logger.exception("Payment failed")
-        logger.exception(payload_as_string)
+
         error = event.data.object.last_payment_error
         raise Http400Error(error.message)
