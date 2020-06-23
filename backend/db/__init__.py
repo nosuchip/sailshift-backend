@@ -1,3 +1,4 @@
+from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -25,8 +26,18 @@ Base = declarative_base()
 Base.query = db_session.query_property()
 
 
+@contextmanager
 def session():
-    return db_session()
+    session = db_session()
+
+    try:
+        yield session
+    except Exception as ex:
+        print('DB session error:')
+        print(ex)
+        session.rollback()
+    else:
+        session.commit()
 
 
 def init_db():

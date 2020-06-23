@@ -11,7 +11,7 @@ class Purchase(Base):
     id = Column(Integer, primary_key=True, nullable=False)
     purchased_at = Column(DateTime, nullable=True)
     valid_until = Column(DateTime, nullable=True)
-    download_url = Column(String(300), nullable=True)
+    download_url = Column(String(500), nullable=True)
 
     document_id = Column(GUID, ForeignKey('documents.id'))
     document = relationship('Document', backref="purchases")
