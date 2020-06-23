@@ -53,6 +53,7 @@ def rollback_failed(sess, func_name):
         return wrapper
     return decorator
 
+
 @rollback_failed(session, 'query')
 def query(model_cls):
     return session.query(model_cls)

@@ -17,6 +17,7 @@ def get_document(document_id):
     try:
         return db.get_by_id(Document, document_id)
     except Exception:
+        db.rollback()
         raise Http404Error('Document not found')
 
 
@@ -89,6 +90,8 @@ def get_user_document_purchase(user, document, raise_on_missing=True):
     try:
         purchase = db.get_one(Purchase, user_id=user.id, document_id=document.id).one()
     except Exception:
+        db.rollback()
+
         if raise_on_missing:
             raise Http404Error('Document not found in user\'s purchase')
         else:
@@ -206,6 +209,7 @@ def get_popular_documents(count=5):
     try:
         return db.query(Document).order_by(Document.rank.desc()).limit(count).all()
     except Exception as ex:
+        db.rollback()
         logger.exception(f'get_popular_documents error: {ex}')
 
     return []

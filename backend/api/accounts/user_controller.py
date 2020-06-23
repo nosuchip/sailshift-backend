@@ -15,6 +15,7 @@ def get_user(email):
     try:
         return db.get_one(User, email=email)
     except Exception:
+        db.rollback()
         raise Http404Error(f'User "{email}" not found')
 
 
@@ -22,6 +23,7 @@ def get_user_by_id(user_id):
     try:
         return db.get_by_id(User, user_id)
     except Exception:
+        db.rollback()
         raise Http404Error(f'User not found')
 
 

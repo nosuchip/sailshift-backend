@@ -29,6 +29,7 @@ async def render_url(url):
 
         db.add(prerender)
     except Exception as ex:
+        db.rollback()
         logger.exception(f'render_url error: {ex}')
     finally:
         await browser.close()
