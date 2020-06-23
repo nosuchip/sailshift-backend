@@ -4,14 +4,29 @@ from sqlalchemy.ext.declarative import declarative_base
 from backend import config
 from backend.common.logger import logger
 
+engine_config = {
+    'pool_pre_ping': True,
+    'convert_unicode': False,
+    'echo': True
+}
 
-engine = create_engine(config.DATABASE_URI, convert_unicode=True, echo=True)
-db_session = scoped_session(sessionmaker(autocommit=False,
-                                         autoflush=False,
-                                         bind=engine))
-session = db_session()
+session_config = {
+    'autocommit': False,
+    'autoflush': False
+}
+
+engine = create_engine(config.DATABASE_URI, **engine_config)
+
+session_factory = sessionmaker(bind=engine, **session_config)
+db_session = scoped_session(session_factory)
+
+
 Base = declarative_base()
 Base.query = db_session.query_property()
+
+
+def session():
+    return db_session()
 
 
 def init_db():

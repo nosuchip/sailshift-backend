@@ -14,7 +14,7 @@ from backend.common.errors import Http404Error, Http410Error
 
 def get_document(document_id):
     try:
-        return session.query(Document).get(document_id)
+        return session().query(Document).get(document_id)
     except Exception:
         raise Http404Error('Document not found')
 
@@ -34,8 +34,8 @@ def create_document(
     document.text = '\n'.join(excerpt_text)
     document.url = uploaded_file_url
 
-    session.add(document)
-    session.commit()
+    session().add(document)
+    session().commit()
 
     return document
 
@@ -53,7 +53,7 @@ def update_document(document, **kwargs):
     if kwargs.get('text'):
         document.text = kwargs.get('text')
 
-    session.commit()
+    session().commit()
 
     return document
 
@@ -87,7 +87,7 @@ def generate_expireable_document_url(document_id=None, document=None, expires_in
 
 def get_user_document_purchase(user, document, raise_on_missing=True):
     try:
-        purchase = session.query(Purchase).filter_by(
+        purchase = session().query(Purchase).filter_by(
             user_id=user.id,
             document_id=document.id
         ).one()
@@ -113,14 +113,14 @@ def get_user_document_purchase(user, document, raise_on_missing=True):
 
 
 def list_documents(page=0, page_size=10):
-    documents = session.query(Document).order_by(Document.rank.desc()).limit(page_size).offset(page*page_size).all()
+    documents = session().query(Document).order_by(Document.rank.desc()).limit(page_size).offset(page*page_size).all()
     return documents
 
 
 def list_past_user_documents(user, page=0, page_size=10):
     now = datetime.now()
 
-    pairs = session.query(Document, Purchase).filter(
+    pairs = session().query(Document, Purchase).filter(
         Document.purchases.any(and_(Purchase.user_id == user.id, Purchase.valid_until < now))
     ).filter(
         Purchase.document_id == Document.id
@@ -142,7 +142,7 @@ def list_past_user_documents(user, page=0, page_size=10):
 def list_actual_user_documents(user, page=0, page_size=10):
     now = datetime.now()
 
-    pairs = session.query(Document, Purchase).filter(
+    pairs = session().query(Document, Purchase).filter(
         Document.purchases.any(and_(Purchase.user_id == user.id, Purchase.valid_until >= now))
     ).filter(
         Purchase.document_id == Document.id
@@ -175,14 +175,14 @@ def search_documents(query, title=None, organization=None, department=None, text
         )
 
         count = (
-            session
+            session()
             .query(func.count(Document.id))
             .filter(filter_clause)
             .scalar()
         )
 
         documents = (
-            session
+            session()
             .query(Document)
             .filter(filter_clause)
             .order_by(Document.rank.desc())
@@ -201,10 +201,15 @@ def search_documents(query, title=None, organization=None, department=None, text
 
 
 def get_popular_documents(count=5):
-    documents = session.query(Document).order_by(Document.rank.desc()).limit(count).all()
-    return documents
+    try:
+        documents = session().query(Document).order_by(Document.rank.desc()).limit(count).all()
+        return documents
+    except Exception as ex:
+        print(">>>", ex)
+
+    return []
 
 
 def delete_document(document):
-    session.delete(document)
-    session.commit()
+    session().delete(document)
+    session().commit()

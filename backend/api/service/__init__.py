@@ -7,6 +7,7 @@ blueprint = Blueprint('service', __name__, url_prefix='/api/service')
 def healthcheck():
     return {'status': 'healthy'}
 
+
 @blueprint.route('/headers', methods=['GET'])
 def headers():
     result = {}

@@ -20,8 +20,8 @@ def create_payment_intent(user, document_id, amount, currency, payment_method):
     purchase.document_id = document_id
     purchase.user_id = user.id
 
-    session.add(purchase)
-    session.commit()
+    session().add(purchase)
+    session().commit()
 
     intent = stripe.PaymentIntent.create(
         amount=int(100 * amount),
@@ -37,7 +37,7 @@ def create_payment_intent(user, document_id, amount, currency, payment_method):
     purchase.payment_id = intent.id,
     purchase.payment_data = intent
 
-    session.commit()
+    session().commit()
 
     return (intent.client_secret, purchase)
 

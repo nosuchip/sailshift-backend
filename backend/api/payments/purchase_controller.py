@@ -12,7 +12,7 @@ def get_purchase(purchase_id=None, payment_id=None):
     if not purchase_id and not payment_id:
         raise Http400Error('Either purchase ID or payment Id must be provided')
 
-    query = session.query(Purchase)
+    query = session().query(Purchase)
 
     if purchase_id:
         query = query.filter_by(id=purchase_id)
@@ -34,7 +34,7 @@ def create_purchase(
     payment_data=None
 ):
 
-    document = session.query(Document).get(document_id)
+    document = session().query(Document).get(document_id)
 
     if not document:
         raise Http404Error('Document not found')
@@ -55,8 +55,8 @@ def create_purchase(
     purchase.payment_id = payment_id
     purchase.payment_data = payment_data
 
-    session.add(purchase)
-    session.commit()
+    session().add(purchase)
+    session().commit()
 
     return purchase
 
@@ -68,7 +68,7 @@ def activate_purchase(purchase_id, expires_in=config.DOCUMENT_DOWNLOAD_EXPIRATIO
         logger.warn(f"Purchase {purchase_id} already activated, skip")
         return purchase
 
-    document = session.query(Document).get(purchase.document_id)
+    document = session().query(Document).get(purchase.document_id)
 
     purchase.download_url = s3.generate_presigned_url(document.url, expires_in)
     now = datetime.now()
@@ -79,7 +79,7 @@ def activate_purchase(purchase_id, expires_in=config.DOCUMENT_DOWNLOAD_EXPIRATIO
     if payment_status:
         purchase.payment_status = payment_status
 
-    session.commit()
+    session().commit()
 
     return purchase
 
@@ -92,6 +92,6 @@ def fail_purchase(purchase_id):
         return purchase
 
     purchase.payment_status = 'failed'
-    session.commit()
+    session().commit()
 
     return False

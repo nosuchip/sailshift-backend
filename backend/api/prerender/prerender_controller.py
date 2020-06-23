@@ -27,8 +27,8 @@ async def render_url(url):
         prerender.path = path
         prerender.html = html
 
-        session.add(prerender)
-        session.commit()
+        session().add(prerender)
+        session().commit()
     except Exception as ex:
         logger.exception(ex)
     finally:

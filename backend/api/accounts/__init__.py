@@ -1,14 +1,15 @@
 import datetime
 from flask import Blueprint, render_template, make_response, request, g
-from backend.common.decorators import api_validation, json_response, admin_required, user_required
+from backend.common.decorators import api_validation, admin_required, user_required
 from backend.api.accounts.schema import (
     LoginSchema,
     RegisterSchema,
     ForgotPasswordSchema,
     ResetPasswordSchema,
-    UpdateUserSchema
+    UpdateUserSchema,
+    ContactSchema
 )
-from backend.api.accounts import user_controller
+from backend.api.accounts import user_controller, contact_controller
 from backend.common.errors import Http400Error, Http404Error, Http401Error
 from backend.db import enums
 from backend import config
@@ -191,6 +192,15 @@ def update_account(user_id, params):
 
     is_admin = g.user.role.value == enums.UserRoles.Admin.value
 
-    user = user_controller.update_user(user, is_admin, **params)
+    user = user_controller.update_user(user, is_admin=is_admin, **params)
 
     return {'user': user.to_json()}
+
+
+@blueprint.route('/contact', methods=['POST'])
+@api_validation(ContactSchema)
+def contact_us(params):
+    contact_controller.send_contact_us(params['email'], params['subject'],
+                                       params['message'])
+
+    return {'success': True}

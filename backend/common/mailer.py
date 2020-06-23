@@ -26,12 +26,23 @@ def render_template(template_name, context=None):
 
 
 def send(to, template, context=None, subject=None):
-    mail = Mail(
-        from_email=Email(config.EMAIL_FROM_ADDRESS),
-        to_emails=To(to),
-        html_content=render_template(template, context or {}),
-        subject=subject
-    )
+    mail = Mail(from_email=Email(config.EMAIL_FROM_ADDRESS),
+                to_emails=To(to),
+                html_content=render_template(template, context or {}),
+                subject=subject)
+
+    response = sendgridClient.client.mail.send.post(request_body=mail.get())
+
+    logger.debug(response.status_code)
+    logger.debug(response.body)
+    logger.debug(response.headers)
+
+
+def send_raw(from_email, to_emails, subject, content):
+    mail = Mail(from_email=Email(from_email),
+                to_emails=To(to_emails),
+                plain_text_content=content,
+                subject=subject)
 
     response = sendgridClient.client.mail.send.post(request_body=mail.get())
 

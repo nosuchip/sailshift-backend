@@ -26,9 +26,15 @@ class ResetPasswordSchema(Schema):
 class UpdateUserSchema(Schema):
     password = fields.Str(required=False)
     confirmation = fields.Str(required=False)
-    name = fields.Str(required=False)
+    name = fields.Str(required=False, allow_none=True)
     email = fields.Str(required=False)
     active = fields.Bool(required=False)
     activated_at = fields.Str(required=False)
     id = fields.Number(required=False)
     role = fields.Str(required=False)
+
+
+class ContactSchema(Schema):
+    email = fields.Str(required=True)
+    message = fields.Str(required=True)
+    subject = fields.Str(required=True)

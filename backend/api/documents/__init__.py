@@ -19,8 +19,6 @@ from backend.api.accounts import user_controller
 from backend.api.prerender import prerender_controller
 from backend.common.errors import Http404Error
 from backend.common import s3
-from backend.db.models.document import Document
-from backend.db import session
 from backend.common import mailer
 from backend.common.logger import logger
 

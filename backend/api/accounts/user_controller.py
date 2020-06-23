@@ -13,14 +13,14 @@ from backend.common.logger import logger
 
 def get_user(email):
     try:
-        return session.query(User).filter_by(email=email).one()
+        return session().query(User).filter_by(email=email).one()
     except Exception:
         raise Http404Error(f'User "{email}" not found')
 
 
 def get_user_by_id(user_id):
     try:
-        return session.query(User).get(user_id)
+        return session().query(User).get(user_id)
     except Exception:
         raise Http404Error(f'User not found')
 
@@ -43,6 +43,7 @@ def load_user_from_token(token):
 
         return user
     except HttpError as ex:
+        logger.exception(f'load_user_from_token HttpError error: ${ex.status} ${ex.message}')
         raise ex
     except Exception as ex:
         logger.exception('load_user_from_token unhandled error:')
@@ -70,7 +71,7 @@ def validate_password(stored_password, password):
 def create_user(**kwargs):
     email = kwargs['email']
 
-    count = session.query(User).filter_by(email=email).count()
+    count = session().query(User).filter_by(email=email).count()
 
     if count:
         raise Http409Error(f'User with email "{email}"" already exists')
@@ -84,8 +85,8 @@ def create_user(**kwargs):
     user.role = enums.UserRoles.User
     user.password = hash_password(kwargs['password'])
 
-    session.add(user)
-    session.commit()
+    session().add(user)
+    session().commit()
 
     return user
 
@@ -106,7 +107,7 @@ def update_user(user, **kwargs):
         if 'active' in kwargs:
             user.active = bool(kwargs['active'])
 
-    session.commit()
+    session().commit()
 
     return user
 
@@ -119,7 +120,7 @@ def verify_user(user):
         raise Http409Error('User already activated')
 
     user.activated_at = datetime.datetime.now()
-    session.commit()
+    session().commit()
 
     return user
 
@@ -130,11 +131,11 @@ def issue_token(user):
 
 
 def delete_user(user_id):
-    session.query(User).filter_by(id=user_id).delete()
-    session.commit()
+    session().query(User).filter_by(id=user_id).delete()
+    session().commit()
 
 
 def list_users(page=0, page_size=10):
-    users = session.query(User).order_by(
+    users = session().query(User).order_by(
         User.id.asc()).limit(page_size).offset(page * page_size).all()
     return users
