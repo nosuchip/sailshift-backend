@@ -50,10 +50,10 @@ def handle_stripe_webhook(payload_as_string, signature):
     # payment_intent.processing
     # payment_intent.succeeded
 
-    logger.debug(">> handle_stripe_webhook, signature:", signature)
-    logger.debug(">> signature:", signature)
-    logger.debug(">> wh secret:", config.STRIPE_WEBHOOK_SECRET)
-    logger.debug(">> payload:", payload_as_string)
+    logger.info(">> handle_stripe_webhook, signature:", signature)
+    logger.info(">> signature:", signature)
+    logger.info(">> wh secret:", config.STRIPE_WEBHOOK_SECRET)
+    logger.info(">> payload:", payload_as_string)
 
     try:
         event = stripe.Webhook.construct_event(payload_as_string, signature, config.STRIPE_WEBHOOK_SECRET)
