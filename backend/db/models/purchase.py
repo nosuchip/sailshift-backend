@@ -37,8 +37,8 @@ class Purchase(Base):
         }
 
         if not short:
-            data['payment_id'] = self.payment_id,
-            data['payment_status'] = self.payment_status,
+            data['payment_id'] = self.payment_id
+            data['payment_status'] = self.payment_status
             data['payment_data'] = self.payment_data
 
         return data

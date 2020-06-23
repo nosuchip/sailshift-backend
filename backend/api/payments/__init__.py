@@ -36,4 +36,4 @@ def check_user_document_payment(payment_id):
     if not purchase or purchase.user_id != g.user.id:
         raise Http404Error('Purchase not found')
 
-    return {'purchase': purchase.to_json()}
+    return {'purchase': purchase.to_json(short=False)}
