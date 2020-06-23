@@ -1,7 +1,7 @@
 import stripe
+from flask import g
 from backend import config
 from backend.db.models.purchase import Purchase
-from backend import db
 from backend.db import enums
 from backend.common.errors import Http400Error
 from backend.api.documents import document_controller
@@ -21,7 +21,8 @@ def create_payment_intent(user, document_id, amount, currency, payment_method):
     purchase.document_id = document_id
     purchase.user_id = user.id
 
-    db.add(purchase)
+    g.session.add(purchase)
+    g.session.commit()
 
     intent = stripe.PaymentIntent.create(
         amount=int(100 * amount),
@@ -37,7 +38,7 @@ def create_payment_intent(user, document_id, amount, currency, payment_method):
     purchase.payment_id = intent.id,
     purchase.payment_data = intent
 
-    db.commit()
+    g.session.commit()
 
     return (intent.client_secret, purchase)
 

@@ -1,4 +1,4 @@
-from functools import wraps
+from contextlib import contextmanager
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,7 +20,20 @@ engine = create_engine(config.DATABASE_URI, **engine_config)
 
 session_factory = sessionmaker(bind=engine, **session_config)
 db_session = scoped_session(session_factory)
-session = db_session()
+
+
+# @contextmanager
+def get_session():
+    return db_session()
+    # _session = db_session()
+    # try:
+    #     yield _session
+    #     _session.commit()
+    # except Exception:
+    #     _session.rollback()
+    #     raise
+    # finally:
+    #     _session.close()
 
 
 Base = declarative_base()
@@ -40,64 +53,44 @@ def init_db():
         logger.exception(ex)
 
 
-def rollback_failed(sess, func_name):
-    def decorator(fn):
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            try:
-                return fn(*args, **kwargs)
-            except Exception as ex:
-                print(f'db.{func_name} error: {ex}')
-                raise ex
 
-        return wrapper
-    return decorator
+# def query(model_cls):
+#     return session.query(model_cls)
 
 
-@rollback_failed(session, 'query')
-def query(model_cls):
-    return session.query(model_cls)
+# def add(model_instance, commit=True):
+#     result = session.add(model_instance)
+#     if commit:
+#         session.commit()
+
+#     return result
 
 
-@rollback_failed(session, 'add')
-def add(model_instance, commit=True):
-    result = session.add(model_instance)
-    if commit:
-        session.commit()
+# def delete(model_cls, model_id, commit=True):
+#     result = session.query(model_cls).filter_by(id=model_id).delete()
+#     if commit:
+#         session.commit()
 
-    return result
-
-
-@rollback_failed(session, 'delete')
-def delete(model_cls, model_id, commit=True):
-    result = session.query(model_cls).filter_by(id=model_id).delete()
-    if commit:
-        session.commit()
-
-    return result
+#     return result
 
 
-@rollback_failed(session, 'get_one')
-def get_one(model_cls, **filter_by):
-    return session.query(model_cls).filter_by(**filter_by).one()
+# def get_one(model_cls, **filter_by):
+#     return session.query(model_cls).filter_by(**filter_by).one()
 
 
-@rollback_failed(session, 'get_by_id')
-def get_by_id(model_cls, model_id):
-    return session.query(model_cls).get(model_id)
+# def get_by_id(model_cls, model_id):
+#     return session.query(model_cls).get(model_id)
 
 
-@rollback_failed(session, 'commit')
-def commit():
-    print("Commiting successful transaction")
-    return session.commit()
+# def commit():
+#     print("Commiting successful transaction")
+#     return session.commit()
 
 
-def rollback():
-    print("Rolling back failed transaction")
-    return session.rollback()
+# def rollback():
+#     print("Rolling back failed transaction")
+#     return session.rollback()
 
 
-@rollback_failed(session, 'count')
-def count(model_cls, **filter_by):
-    return session.query(model_cls).filter_by(**filter_by).count()
+# def count(model_cls, **filter_by):
+#     return session.query(model_cls).filter_by(**filter_by).count()

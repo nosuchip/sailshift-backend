@@ -1,13 +1,13 @@
 import os.path
 import uuid
 import math
+from flask import g
 from sqlalchemy import and_, or_, func
 from datetime import datetime
 from backend.common import s3
 from backend import config
 from backend.db.models.document import Document
 from backend.db.models.purchase import Purchase
-from backend import db
 from backend.common.parsers import pdf
 from backend.common.errors import Http404Error, Http410Error
 from backend.common.logger import logger
@@ -15,9 +15,8 @@ from backend.common.logger import logger
 
 def get_document(document_id):
     try:
-        return db.get_by_id(Document, document_id)
+        return g.session.query(Document).get(document_id)
     except Exception:
-        db.rollback()
         raise Http404Error('Document not found')
 
 
@@ -36,7 +35,8 @@ def create_document(
     document.text = '\n'.join(excerpt_text)
     document.url = uploaded_file_url
 
-    db.add(document)
+    g.session.add(document)
+    g.session.commit()
 
     return document
 
@@ -54,7 +54,7 @@ def update_document(document, **kwargs):
     if kwargs.get('text'):
         document.text = kwargs.get('text')
 
-    db.commit()
+    g.session.commit()
 
     return document
 
@@ -88,10 +88,11 @@ def generate_expireable_document_url(document_id=None, document=None, expires_in
 
 def get_user_document_purchase(user, document, raise_on_missing=True):
     try:
-        purchase = db.get_one(Purchase, user_id=user.id, document_id=document.id).one()
+        purchase = g.session.query(Purchase).filter_by(
+            user_id=user.id,
+            document_id=document.id
+        ).one()
     except Exception:
-        db.rollback()
-
         if raise_on_missing:
             raise Http404Error('Document not found in user\'s purchase')
         else:
@@ -112,18 +113,16 @@ def get_user_document_purchase(user, document, raise_on_missing=True):
     return purchase
 
 
-@db.rollback_failed(db.session, 'list_documents')
 def list_documents(page=0, page_size=10):
-    return db.query(Document).order_by(
+    return g.session.query(Document).order_by(
         Document.rank.desc()
     ).limit(page_size).offset(page * page_size).all()
 
 
-@db.rollback_failed(db.session, 'list_past_user_documents')
 def list_past_user_documents(user, page=0, page_size=10):
     now = datetime.now()
 
-    pairs = db.query(Document, Purchase).filter(
+    pairs = g.session.query(Document, Purchase).filter(
         Document.purchases.any(and_(Purchase.user_id == user.id, Purchase.valid_until < now))
     ).filter(
         Purchase.document_id == Document.id
@@ -142,11 +141,10 @@ def list_past_user_documents(user, page=0, page_size=10):
     return results
 
 
-@db.rollback_failed(db.session, 'list_actual_user_documents')
 def list_actual_user_documents(user, page=0, page_size=10):
     now = datetime.now()
 
-    pairs = db.query(Document, Purchase).filter(
+    pairs = g.session.query(Document, Purchase).filter(
         Document.purchases.any(and_(Purchase.user_id == user.id, Purchase.valid_until >= now))
     ).filter(
         Purchase.document_id == Document.id
@@ -165,7 +163,6 @@ def list_actual_user_documents(user, page=0, page_size=10):
     return results
 
 
-@db.rollback_failed(db.session, 'search_documents')
 def search_documents(query, title=None, organization=None, department=None, text=None, page=None, page_size=None):
     page = page or 0
     page_size = page_size or 10
@@ -180,14 +177,14 @@ def search_documents(query, title=None, organization=None, department=None, text
         )
 
         count = (
-            db
+            g.session
             .query(func.count(Document.id))
             .filter(filter_clause)
             .scalar()
         )
 
         documents = (
-            db
+            g.session
             .query(Document)
             .filter(filter_clause)
             .order_by(Document.rank.desc())
@@ -207,13 +204,12 @@ def search_documents(query, title=None, organization=None, department=None, text
 
 def get_popular_documents(count=5):
     try:
-        return db.query(Document).order_by(Document.rank.desc()).limit(count).all()
+        return g.session.query(Document).order_by(Document.rank.desc()).limit(count).all()
     except Exception as ex:
-        db.rollback()
         logger.exception(f'get_popular_documents error: {ex}')
 
     return []
 
 
 def delete_document(document):
-    db.delete(Document, document.id)
+    g.session.query(Document).filter_by(id=document.id).delete()

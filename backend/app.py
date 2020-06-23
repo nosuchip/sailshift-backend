@@ -1,6 +1,5 @@
-import traceback
 import logging
-from flask import Flask
+from flask import Flask, g
 from flask_cors import CORS
 
 from backend.api import accounts
@@ -8,7 +7,7 @@ from backend.api import documents
 from backend.api import payments
 from backend.api import non_api
 from backend.api import service
-from backend.db import init_db
+from backend.db import init_db, get_session
 
 from backend.common.logger import logger
 
@@ -44,5 +43,24 @@ def create_app():
             logger.exception(e)
 
         return {'success': False, 'error': f'{e}'}, 404
+
+    @app.before_request
+    def before_request():
+        print(">> Request initialization")
+        g.session = get_session()
+
+    @app.teardown_request
+    def end_request(ex=None):
+        print(">> Request finallization")
+
+        if g.session:
+            if ex:
+                print(f">> rollback session due exception: {ex}")
+                g.session.rollback()
+            else:
+                print(f">> commit session")
+                g.session.commit()
+
+            g.session.close()
 
     return app

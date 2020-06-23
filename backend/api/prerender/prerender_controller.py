@@ -1,7 +1,7 @@
+from flask import g
 from urllib.parse import urljoin, urlparse
 from pyppeteer import launch
 from backend import config
-from backend import db
 from backend.db.models.prerender import Prerender
 from backend.common.logger import logger
 
@@ -27,9 +27,8 @@ async def render_url(url):
         prerender.path = path
         prerender.html = html
 
-        db.add(prerender)
+        g.session.add(prerender)
     except Exception as ex:
-        db.rollback()
         logger.exception(f'render_url error: {ex}')
     finally:
         await browser.close()
