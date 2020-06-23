@@ -107,6 +107,9 @@ def update_user(user, **kwargs):
         if 'active' in kwargs:
             user.active = bool(kwargs['active'])
 
+        if 'email' in kwargs:
+            user.email = kwargs['email']
+
     session().commit()
 
     return user

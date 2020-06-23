@@ -10,7 +10,7 @@ from backend.api.accounts.schema import (
     ContactSchema
 )
 from backend.api.accounts import user_controller, contact_controller
-from backend.common.errors import Http400Error, Http404Error, Http401Error
+from backend.common.errors import Http400Error, Http404Error, Http401Error, Http403Error
 from backend.db import enums
 from backend import config
 from backend.common import mailer
@@ -191,6 +191,9 @@ def update_account(user_id, params):
         raise Http404Error('User not found')
 
     is_admin = g.user.role.value == enums.UserRoles.Admin.value
+
+    if not is_admin and g.user.id != user_id:
+        raise Http403Error('User update forbidden')
 
     user = user_controller.update_user(user, is_admin=is_admin, **params)
 
