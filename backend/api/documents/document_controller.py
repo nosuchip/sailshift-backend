@@ -192,8 +192,11 @@ def search_documents(query, title=None, organization=None, department=None, text
         else:
             or_filters.append(Document.department.ilike(f'%{query}%'))
 
-        and_filters.append(or_(*or_filters))
-        filter_clause = and_(and_filters)
+        filter_clause = or_(*or_filters)
+
+        if and_filters:
+            and_filters.append(or_(*or_filters))
+            filter_clause = and_(*and_filters)
 
         count = (
             g.session
