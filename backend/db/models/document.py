@@ -12,6 +12,7 @@ class Document(Base):
     id = Column(GUID, primary_key=True, nullable=False, default=uuid.uuid4)
     title = Column(String(500), nullable=False)
     organization = Column(String(500), nullable=False)
+    department = Column(String(500), nullable=False)
     description = Column(String(500), nullable=False)
     text = Column(TEXT(2048))
     url = Column(String(500), nullable=False, unique=True)
@@ -26,6 +27,7 @@ class Document(Base):
             'id': self.id.hex if hasattr(self.id, 'hex') else str(self.id),
             'title': self.title,
             'organization': self.organization,
+            'department': self.department,
             'description': self.description,
         }
 

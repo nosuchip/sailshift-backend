@@ -5,6 +5,7 @@ class DocumentCreateSchema(Schema):
     price = fields.Number(required=False)
     title = fields.Str(required=True)
     organization = fields.Str(required=False)
+    department = fields.Str(required=False)
     description = fields.Str(required=False)
 
 
@@ -14,6 +15,7 @@ class DocumentUpdateSchema(Schema):
     url = fields.Str(required=False)
     title = fields.Str(required=False)
     organization = fields.Str(required=False)
+    department = fields.Str(required=False)
     description = fields.Str(required=False)
     text = fields.Str(required=False)
 

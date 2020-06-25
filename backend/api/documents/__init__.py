@@ -71,13 +71,9 @@ def admin_upload_document(params):
     temp_file_path, uploaded_file_url = document_controller.upload_file_to_s3(request.files['file'])
     excerpt_title, excerpt_text = document_controller.make_document_excerpt(temp_file_path)
     document = document_controller.create_document(
-        params['title'],
-        params.get('organization', ''),
-        params.get('description', ''),
-        uploaded_file_url,
-        excerpt_text,
-        excerpt_title
-    )
+        params['title'], params.get('organization', ''),
+        params.get('department', ''), params.get('description', ''),
+        uploaded_file_url, excerpt_text, excerpt_title)
 
     os.unlink(temp_file_path)
 

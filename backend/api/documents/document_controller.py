@@ -23,6 +23,7 @@ def get_document(document_id):
 def create_document(
     name,
     organization,
+    department,
     description,
     uploaded_file_url,
     excerpt_text,
@@ -31,6 +32,7 @@ def create_document(
     document = Document()
     document.title = name
     document.organization = organization
+    document.department = department
     document.description = description
     document.text = '\n'.join(excerpt_text)
     document.url = uploaded_file_url
@@ -47,6 +49,9 @@ def update_document(document, **kwargs):
 
     if kwargs.get('organization'):
         document.organization = kwargs.get('organization')
+
+    if kwargs.get('department'):
+        document.department = kwargs.get('department')
 
     if kwargs.get('description'):
         document.description = kwargs.get('description')
