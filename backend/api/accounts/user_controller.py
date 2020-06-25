@@ -138,6 +138,6 @@ def delete_user(user_id):
 
 
 def list_users(page=0, page_size=10):
-    return g.sesson.query(User).order_by(
+    return g.session.query(User).order_by(
         User.id.asc()
     ).limit(page_size).offset(page * page_size).all()
