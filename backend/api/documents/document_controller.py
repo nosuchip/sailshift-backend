@@ -2,7 +2,7 @@ import os.path
 import uuid
 import math
 from flask import g
-from sqlalchemy import and_, or_, func
+from sqlalchemy import and_, or_, and_, func
 from datetime import datetime
 from backend.common import s3
 from backend import config
@@ -175,11 +175,25 @@ def search_documents(query, title=None, organization=None, department=None, text
     documents = []
 
     if query:
-        filter_clause = or_(
+        or_filters = [
             Document.title.ilike(f'%{query}%'),
-            Document.organization.ilike(f'%{query}%'),
             Document.text.ilike(f'%{query}%')
-        )
+        ]
+
+        and_filters = []
+
+        if organization:
+            and_filters.append(Document.organization.ilike(f'%{organization}%'))
+        else:
+            or_filters.append(Document.organization.ilike(f'%{query}%'))
+
+        if department:
+            and_filters.append(Document.department.ilike(f'%{department}%'))
+        else:
+            or_filters.append(Document.department.ilike(f'%{query}%'))
+
+        and_filters.append(or_(*or_filters))
+        filter_clause = and_(and_filters)
 
         count = (
             g.session
