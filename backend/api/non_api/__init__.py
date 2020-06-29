@@ -1,16 +1,26 @@
 import os.path
-from flask import Blueprint, send_file
+from flask import Blueprint, send_file, make_response
 from backend.common.errors import Http404Error
-from backend.common.logger import logger
-
+from backend.common.logger import logger, config
+from backend.api.prerender import prerender_controller
+from backend.common.decorators import async_action
 
 blueprint = Blueprint('non_api', __name__)
 
 
 @blueprint.route('/', defaults={'path': ''})
 @blueprint.route('/<path:path>')
-def catch_all(path):
+@async_action
+async def catch_all(path):
     logger.warn(f"Static fallback file handler for path {path}")
+
+    # Prerender
+
+    if prerender_controller.should_prerender(path):
+        html = await prerender_controller.render_url(f"{config.SITE_URL}/{path}")
+        resp = make_response(html)
+        resp.mimetype = 'text/plain'
+        return resp
 
     # Some special handlers
 
