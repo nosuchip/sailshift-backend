@@ -10,7 +10,7 @@ from backend.common.logger import logger
 def should_prerender(url):
     # Prerender for bots
     user_agent = request.headers.get('user-agent')
-    known_bots = re.compile(r'googlebot|adsbot\-google|Feedfetcher\-Google|bingbot|yandex|baiduspider|Facebot|facebookexternalhit|twitterbot|WhatsApp|Applebot|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|TelegramBot')
+    known_bots = re.compile(r'googlebot|adsbot\-google|Feedfetcher\-Google|bingbot|yandex|baiduspider|Facebot|facebookexternalhit|twitterbot|WhatsApp|Applebot|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|TelegramBot', re.IGNORECASE)
     prerender_urls_rx = [re.compile(r'^document/[A-Fa-f0-9]+$')]
 
     match_user_agent = known_bots.match(user_agent)
