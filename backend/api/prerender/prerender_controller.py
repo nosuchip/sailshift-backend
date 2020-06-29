@@ -35,6 +35,11 @@ async def render_url(url):
         page = await browser.newPage()
         logger.info(f'Prerendering URL {full_url}')
         await page.goto(full_url)
+
+        print(">> awaiting for meta-ready tag")
+        await page.waitForFunction('document.querySelector(`meta[name="meta-ready"][content="true"]`)')
+        print(">> got meta-ready tag:")
+
         html = await page.evaluate('() => document.documentElement.outerHTML')
 
         prerender = None

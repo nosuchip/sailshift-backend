@@ -46,22 +46,23 @@ def create_app():
 
     @app.before_request
     def before_request():
-        print(">> Request initialization")
+        logger.debug("Request begin")
         g.session = get_session()
 
     @app.teardown_request
     def end_request(ex=None):
-        print(">> Request finallization")
-
         if g.session:
             if ex:
-                print(f">> rollback session due exception: {ex}")
+                logger.debug("Request end (db session FAIL, rolling back)")
                 g.session.rollback()
             else:
-                print(f">> commit session")
+                logger.debug("Request end (db session SUCCESS, commit)")
                 g.session.commit()
 
             g.session.close()
             g.session = None
+        else:
+            logger.debug("Request end (no db session)")
+
 
     return app
