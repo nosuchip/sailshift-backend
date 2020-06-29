@@ -20,19 +20,24 @@ def should_prerender(url):
 
 
 async def render_url(url):
-    browser = await launch(
-        handleSIGINT=False,
-        handleSIGTERM=False,
-        handleSIGHUP=False,
-        headless=False
-    )
-
     html = ''
 
     try:
+        print(">> launching browser")
+        browser = await launch(handleSIGINT=False,
+                               handleSIGTERM=False,
+                               handleSIGHUP=False,
+                               args=["--no-sandbox", "--disable-dev-shm-usage"]
+                               )
+
+        print(">> browser stated")
+
         full_url = urljoin(config.SITE_URL, url)
         path = urlparse(full_url).path
+        print(">> awaiting for new page")
         page = await browser.newPage()
+        print(">> opening url")
+
         logger.info(f'Prerendering URL {full_url}')
         await page.goto(full_url)
 
@@ -61,6 +66,7 @@ async def render_url(url):
         g.session.commit()
     except Exception as ex:
         logger.exception(f'render_url error: {ex}')
+        logger.exception(ex)
     finally:
         await browser.close()
 
