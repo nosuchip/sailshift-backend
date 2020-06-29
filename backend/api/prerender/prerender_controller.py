@@ -21,6 +21,7 @@ def should_prerender(url):
 
 async def render_url(url):
     html = ''
+    browser = None
 
     try:
         print(">> launching browser")
@@ -68,6 +69,7 @@ async def render_url(url):
         logger.exception(f'render_url error: {ex}')
         logger.exception(ex)
     finally:
-        await browser.close()
+        if browser:
+            await browser.close()
 
     return html
