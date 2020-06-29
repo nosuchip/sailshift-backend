@@ -176,13 +176,16 @@ def list_documents():
 
 
 @blueprint.route('/<document_id>', methods=['GET'])
-@user_required
+# @user_required
 def get_document(document_id):
     document = document_controller.get_document(document_id)
 
     result = {'document': document.to_json()}
 
-    user_purchase = document_controller.get_user_document_purchase(g.user, document, False)
+    user_purchase = None
+
+    if hasattr(g, 'user'):
+        user_purchase = document_controller.get_user_document_purchase(g.user, document, False)
 
     if user_purchase:
         result['purchase'] = {
