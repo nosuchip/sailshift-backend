@@ -13,6 +13,8 @@ def should_prerender(url):
     known_bots = re.compile(r'googlebot|adsbot\-google|Feedfetcher\-Google|bingbot|yandex|baiduspider|Facebot|facebookexternalhit|twitterbot|WhatsApp|Applebot|rogerbot|linkedinbot|embedly|quora link preview|showyoubot|outbrain|pinterest|slackbot|vkShare|W3C_Validator|TelegramBot', re.IGNORECASE)
     prerender_urls_rx = [re.compile(r'^document/[A-Fa-f0-9]+$')]
 
+    logger.info(f"should_prerender:: user agent: '{user_agent}', url: '{url}'")
+
     match_user_agent = known_bots.match(user_agent)
     match_url = any([rx.match(url) for rx in prerender_urls_rx])
 
