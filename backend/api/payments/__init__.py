@@ -5,6 +5,7 @@ from backend.api.payments import payment_controller
 from backend.api.payments import purchase_controller
 from backend.common.decorators import user_required
 from backend.common.errors import Http404Error
+from backend import config
 
 blueprint = Blueprint('payments', __name__, url_prefix='/api/payments')
 
@@ -15,7 +16,10 @@ blueprint = Blueprint('payments', __name__, url_prefix='/api/payments')
 def create_payment_intent(params):
     (intent_client_secret, purchase) = payment_controller.create_payment_intent(g.user, **params)
 
-    return {'client_secret': intent_client_secret}
+    return {
+        'client_secret': intent_client_secret,
+        'stripe_publishable_key': config.STRIPE_PUBLISHABLE_KEY
+    }
 
 
 @blueprint.route('/stripe/webhook', methods=['POST'])
